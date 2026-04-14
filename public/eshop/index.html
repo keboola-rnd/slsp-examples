@@ -14,14 +14,14 @@
 
 /* --- CSS Custom Properties ------------------- */
 :root {
-  /* Brand — SLSP / Erste */
-  --blue: #135ee2;
-  --blue-dark: #064ea1;
-  --blue-darker: #0b1f42;
-  --blue-light: #2870ed;
-  --blue-bg: #eef4fe;
-  --blue-bg-strong: #d1ebfe;
-  --red: #ea0000;
+  /* Brand — Česká spořitelna */
+  --blue: #003DA5;
+  --blue-dark: #002880;
+  --blue-darker: #001456;
+  --blue-light: #2B6ADB;
+  --blue-bg: #EEF4FF;
+  --blue-bg-strong: #C5D8FF;
+  --red: #D7001D;
 
   /* Neutrals */
   --gray-950: #0A0A0A;
@@ -118,11 +118,11 @@ img { display: block; max-width: 100%; }
 .btn-primary {
   background: var(--blue);
   color: var(--white);
-  box-shadow: 0 2px 6px rgba(19, 94, 226, 0.30);
+  box-shadow: 0 2px 6px rgba(0, 61, 165, 0.30);
 }
 .btn-primary:hover {
   background: var(--blue-dark);
-  box-shadow: 0 4px 12px rgba(19, 94, 226, 0.40);
+  box-shadow: 0 4px 12px rgba(0, 61, 165, 0.40);
   transform: translateY(-1px);
 }
 .btn-primary:active { transform: translateY(0); }
@@ -288,7 +288,7 @@ img { display: block; max-width: 100%; }
   width: 260px;
   border-color: var(--blue);
   background: var(--white);
-  box-shadow: 0 0 0 3px rgba(19, 94, 226, 0.10);
+  box-shadow: 0 0 0 3px rgba(0, 61, 165, 0.10);
 }
 
 .search-icon {
@@ -354,7 +354,7 @@ img { display: block; max-width: 100%; }
 
 /* --- Hero ------------------------------------ */
 .hero {
-  background: linear-gradient(135deg, var(--blue-darker) 0%, #0a2d6e 50%, var(--blue-dark) 100%);
+  background: linear-gradient(135deg, var(--blue-darker) 0%, #001E6E 50%, var(--blue-dark) 100%);
   color: white;
   overflow: hidden;
   position: relative;
@@ -382,14 +382,14 @@ img { display: block; max-width: 100%; }
 .hero-eyebrow {
   display: inline-block;
   padding: 4px 12px;
-  background: rgba(19, 94, 226, 0.3);
-  border: 1px solid rgba(19, 94, 226, 0.5);
+  background: rgba(0, 61, 165, 0.3);
+  border: 1px solid rgba(0, 61, 165, 0.5);
   border-radius: var(--r-full);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  color: #FFA0A0;
+  color: #A8F0C0;
   margin-bottom: 20px;
 }
 
@@ -532,7 +532,7 @@ img { display: block; max-width: 100%; }
   background: var(--blue);
   color: white;
   border-color: var(--blue);
-  box-shadow: 0 2px 8px rgba(19,94,226,0.25);
+  box-shadow: 0 2px 8px rgba(0, 61, 165,0.25);
 }
 
 .pill-active:hover {
@@ -711,12 +711,12 @@ img { display: block; max-width: 100%; }
   background: var(--blue);
   color: white;
   border-color: var(--blue);
-  box-shadow: 0 3px 10px rgba(19,94,226,0.30);
+  box-shadow: 0 3px 10px rgba(0, 61, 165,0.30);
 }
 
 .add-to-cart-btn.added {
-  background: #1C7A3D;
-  border-color: #1C7A3D;
+  background: #1A5FBB;
+  border-color: #1A5FBB;
   color: white;
 }
 
@@ -1141,7 +1141,7 @@ img { display: block; max-width: 100%; }
 .form-group input:focus,
 .form-group textarea:focus {
   border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(19,94,226,0.08);
+  box-shadow: 0 0 0 3px rgba(0, 61, 165,0.08);
 }
 
 .form-group input.invalid,
@@ -1199,7 +1199,7 @@ img { display: block; max-width: 100%; }
 .success-icon svg {
   width: 32px;
   height: 32px;
-  color: #1C7A3D;
+  color: #1A5FBB;
   stroke-width: 2.5;
 }
 
@@ -1255,7 +1255,7 @@ img { display: block; max-width: 100%; }
   white-space: nowrap;
 }
 
-.toast-success { background: #1C7A3D; }
+.toast-success { background: #1A5FBB; }
 .toast-error { background: var(--blue-dark); }
 
 @keyframes toastIn {
@@ -1288,7 +1288,7 @@ img { display: block; max-width: 100%; }
 }
 
 .footer-brand .logo-title { color: white; }
-.footer-brand .logo-sub { color: rgba(19,94,226,0.8); }
+.footer-brand .logo-sub { color: rgba(0, 61, 165,0.8); }
 .footer-brand .logo-mark { background: var(--blue); }
 
 .footer-desc {

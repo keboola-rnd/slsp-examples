@@ -3,186 +3,329 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SLSP Data Apps</title>
+  <title>ČS Data Apps</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --primary: #D7001D;
-      --primary-dark: #a80017;
-      --bg: #ffffff;
-      --text: #1a1a1a;
-      --text-secondary: #666666;
-      --border: #e5e5e5;
-      --card-bg: #f8f8f8;
-      --radius: 8px;
-      --shadow: 0 2px 8px rgba(0,0,0,0.08);
-      --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: var(--font); background: var(--bg); color: var(--text); }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* Container */
+    :root {
+      --green: #003DA5;
+      --green-dark: #002880;
+      --green-light: #EEF4FF;
+      --green-mid: #D8E8FF;
+      --text: #1A1A1A;
+      --text-sub: #5E5E5E;
+      --border: #E8E8E8;
+      --bg: #F6F7F8;
+      --white: #FFFFFF;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --radius-card: 16px;
+      --radius-pill: 999px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07);
+      --shadow-hover: 0 8px 28px rgba(0,0,0,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+    a { text-decoration: none; color: inherit; }
+
     .container {
-      max-width: 1200px;
+      max-width: 1160px;
       margin: 0 auto;
       padding: 0 24px;
     }
 
-    /* Header */
+    /* ── Header ── */
     header {
-      background: var(--primary);
-      padding: 20px 0;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    header .container {
+    .header-inner {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      height: 68px;
     }
-    header h1 {
-      color: white;
-      font-size: 22px;
-      font-weight: 700;
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    header p {
-      color: rgba(255,255,255,0.85);
-      font-size: 13px;
-      margin-top: 3px;
+    .logo-mark {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
     }
-    .keboola-badge {
-      color: white;
-      border: 1px solid rgba(255,255,255,0.4);
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 12px;
-      white-space: nowrap;
+    .logo-text {
+      display: flex;
+      flex-direction: column;
     }
-
-    /* Hero */
-    .hero {
-      text-align: center;
-      padding: 64px 24px 48px;
-      background: white;
-    }
-    .hero h2 {
-      font-size: 32px;
+    .logo-name {
+      font-size: 15px;
       font-weight: 700;
       color: var(--text);
+      line-height: 1.2;
+      letter-spacing: -0.2px;
     }
-    .hero p {
-      font-size: 16px;
-      color: var(--text-secondary);
-      max-width: 600px;
-      margin: 16px auto 0;
-      line-height: 1.6;
+    .logo-tagline {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-sub);
+      letter-spacing: 0.2px;
+    }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .keboola-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-sub);
     }
 
-    /* Apps section */
+    /* ── Hero ── */
+    .hero {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 72px 24px 80px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-light);
+      border: 1px solid rgba(0, 154, 68, 0.25);
+      border-radius: var(--radius-pill);
+      padding: 5px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--green-dark);
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+    }
+    .hero h1 {
+      font-size: clamp(30px, 4vw, 48px);
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.12;
+      letter-spacing: -1.5px;
+      margin-bottom: 18px;
+    }
+    .hero h1 span {
+      color: var(--green);
+    }
+    .hero p {
+      font-size: 17px;
+      color: var(--text-sub);
+      max-width: 540px;
+      margin: 0 auto 32px;
+      line-height: 1.65;
+    }
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      margin-top: 32px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-stat strong {
+      display: block;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -1px;
+    }
+    .hero-stat span {
+      font-size: 13px;
+      color: var(--text-sub);
+    }
+
+    /* ── Apps Section ── */
     .apps-section {
-      background: #f4f4f4;
-      padding: 48px 24px;
+      padding: 56px 24px 80px;
+    }
+    .section-header {
+      margin-bottom: 32px;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.5px;
     }
     .apps-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
+      gap: 20px;
     }
 
-    /* Card */
+    /* ── Card ── */
     .app-card {
-      background: white;
-      border-radius: var(--radius);
+      background: var(--white);
+      border-radius: var(--radius-card);
+      border: 1px solid var(--border);
       box-shadow: var(--shadow);
       overflow: hidden;
-      transition: transform 0.2s, box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
     .app-card.active:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-hover);
     }
-    .card-accent {
-      height: 4px;
+    .card-visual {
+      height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
     }
     .card-body {
-      padding: 28px;
+      padding: 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
     }
-    .card-icon {
-      margin-bottom: 16px;
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .card-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--green);
+    }
+    .card-badge-new {
+      background: var(--green-mid);
+      color: var(--green-dark);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      letter-spacing: 0.3px;
     }
     .card-body h3 {
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 700;
       color: var(--text);
       margin-bottom: 8px;
+      letter-spacing: -0.3px;
     }
     .card-desc {
       font-size: 14px;
-      color: var(--text-secondary);
+      color: var(--text-sub);
       line-height: 1.6;
+      flex: 1;
+      margin-bottom: 20px;
     }
     .card-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 0;
+      gap: 6px;
+      margin-bottom: 20px;
     }
-
-    /* Tags */
     .tag {
       display: inline-block;
       padding: 3px 10px;
-      border-radius: 12px;
+      border-radius: var(--radius-pill);
       font-size: 11px;
       font-weight: 600;
-      margin-right: 6px;
-      margin-top: 12px;
     }
-    .tag-ai { background: #e8f0fe; color: #1a56db; }
-    .tag-finance { background: #e6f7f0; color: #0a7c42; }
-    .tag-soon { background: #f0f0f0; color: #666; }
-    .tag-reporting { background: #e6f7f0; color: #006B37; }
-    .tag-cs { background: #f0f7ec; color: #006B37; }
-    .tag-new { background: #d1f0dc; color: #00863B; }
-    .tag-merch { background: #fde8cc; color: #c45000; }
+    .tag-ai       { background: var(--green-light); color: var(--green-dark); }
+    .tag-finance  { background: #E8F0FF; color: #0A6B42; }
+    .tag-reporting{ background: #E8F0FF; color: #006B37; }
+    .tag-cs       { background: #EEF4FF; color: #006B37; }
+    .tag-new      { background: var(--green-mid); color: var(--green-dark); }
+    .tag-merch    { background: #FEF3E8; color: #C45000; }
 
-    /* Buttons */
+    /* ── Button ── */
     .btn {
       display: block;
       width: 100%;
-      margin-top: 20px;
-      padding: 12px;
-      border-radius: var(--radius);
+      padding: 13px 20px;
+      border-radius: var(--radius-pill);
       font-size: 14px;
       font-weight: 600;
       text-align: center;
-      text-decoration: none;
       cursor: pointer;
       border: none;
-      transition: background 0.2s;
+      font-family: var(--font);
+      transition: background 0.15s, transform 0.1s;
     }
     .btn-primary {
-      background: var(--primary);
-      color: white;
+      background: var(--green);
+      color: var(--white);
     }
     .btn-primary:hover {
-      background: var(--primary-dark);
+      background: var(--green-dark);
     }
-    .btn-disabled {
-      background: #e0e0e0;
-      color: #999;
-      cursor: not-allowed;
-      opacity: 0.5;
+    .btn-primary:active {
+      transform: scale(0.98);
     }
 
-    /* Footer */
+    /* ── Footer ── */
     footer {
-      background: #1a1a1a;
-      padding: 24px;
+      background: #111;
+      padding: 28px 24px;
       text-align: center;
     }
+    footer p {
+      color: rgba(255,255,255,0.45);
+      font-size: 13px;
+    }
+    footer a {
+      color: rgba(255,255,255,0.6);
+      text-decoration: underline;
+    }
 
-    /* Responsive fallback for narrow screens */
-    @media (max-width: 900px) {
-      .apps-grid {
-        grid-template-columns: 1fr 1fr;
-      }
+    /* ── Responsive ── */
+    @media (max-width: 960px) {
+      .apps-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 580px) {
+      .apps-grid { grid-template-columns: 1fr; }
+      .hero { padding: 48px 24px 56px; }
+      .hero-stats { gap: 24px; }
     }
   </style>
 </head>
@@ -190,35 +333,71 @@
 
   <header>
     <div class="container">
-      <div>
-        <h1>SLSP Data Apps</h1>
-        <p>Ukázkové AI aplikace pro moderní bankovnictví</p>
+      <div class="header-inner">
+        <a href="/" class="logo">
+          <!-- ČS logo mark — stylized green leaf/check -->
+          <svg class="logo-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="40" height="40" rx="10" fill="#003DA5"/>
+            <path d="M11 20.5C11 15.25 15.25 11 20.5 11C23.5 11 26.2 12.4 28 14.7" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M15 21l4 4 8-8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div class="logo-text">
+            <span class="logo-name">Česká spořitelna</span>
+            <span class="logo-tagline">Data Apps</span>
+          </div>
+        </a>
+        <div class="header-right">
+          <span class="keboola-badge">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect width="14" height="14" rx="3" fill="#1464F6"/><path d="M4 7l2.5 2.5L10 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Powered by Keboola
+          </span>
+        </div>
       </div>
-      <span class="keboola-badge">Powered by Keboola</span>
     </div>
   </header>
 
   <section class="hero">
     <div class="container">
-      <h2>AI nástroje pro moderní bankovnictví</h2>
-      <p>Demonstrační aplikace využívající umělou inteligenci pro analýzu klientských dat a automatizaci finančního poradenství.</p>
+      <div class="hero-eyebrow">AI aplikace pro bankovnictví</div>
+      <h1>Nástroje, které dělají<br><span>bankovnictví chytřejší</span></h1>
+      <p>Demonstrační aplikace postavené na Keboola platformě. Analýza klientských dat, reporting poboček a interní e-shop.</p>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <strong>3</strong>
+          <span>aplikace</span>
+        </div>
+        <div class="hero-stat">
+          <strong>AI</strong>
+          <span>powered</span>
+        </div>
+        <div class="hero-stat">
+          <strong>Live</strong>
+          <span>demo</span>
+        </div>
+      </div>
     </div>
   </section>
 
   <section class="apps-section">
     <div class="container">
+      <div class="section-header">
+        <p class="section-label">Dostupné aplikace</p>
+        <h2 class="section-title">Vyberte aplikaci</h2>
+      </div>
       <div class="apps-grid">
 
-        <!-- Card 1 — Solution Finder (ACTIVE) -->
+        <!-- Solution Finder -->
         <div class="app-card active">
-          <div class="card-accent" style="background: #1B3A6B; height: 4px;"></div>
+          <div class="card-visual" style="background: linear-gradient(135deg, #E8F0FF 0%, #D0EEE0 100%);">
+            <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="28" fill="white" fill-opacity="0.7"/>
+              <path d="M36 16L20 23v15c0 10.77 7.71 20.85 16 23.25C44.29 58.85 52 48.77 52 38V23L36 16z" fill="#003DA5" fill-opacity="0.9"/>
+              <path d="M30 36l4.5 4.5 9-9" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
           <div class="card-body">
-            <div class="card-icon">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="48" height="48" rx="12" fill="#e8f0fe"/>
-                <path d="M24 10L12 15v10c0 7.18 5.14 13.9 12 15.5C30.86 38.9 36 32.18 36 25V15L24 10z" fill="#1B3A6B"/>
-                <path d="M20 24l3 3 6-6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+            <div class="card-meta">
+              <span class="card-label">AI poradenství</span>
             </div>
             <h3>Solution Finder</h3>
             <p class="card-desc">AI poradce analyzuje finanční situaci klienta a navrhuje konkrétní úpravy produktů pro dosažení solventnosti.</p>
@@ -230,18 +409,20 @@
           </div>
         </div>
 
-        <!-- Card 2 — Branch Reporter (ACTIVE) -->
+        <!-- Branch Reporter -->
         <div class="app-card active">
-          <div class="card-accent" style="background: #006B37; height: 4px;"></div>
+          <div class="card-visual" style="background: linear-gradient(135deg, #E8F0FF 0%, #C5D8FF 100%);">
+            <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="28" fill="white" fill-opacity="0.7"/>
+              <rect x="18" y="46" width="9" height="12" rx="2" fill="#002880"/>
+              <rect x="31" y="34" width="9" height="24" rx="2" fill="#003DA5"/>
+              <rect x="44" y="24" width="9" height="34" rx="2" fill="#002880"/>
+              <polyline points="18,36 30,24 42,30 54,15" stroke="#C8A430" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </svg>
+          </div>
           <div class="card-body">
-            <div class="card-icon">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="48" height="48" rx="12" fill="#e6f7f0"/>
-                <rect x="12" y="30" width="6" height="8" rx="2" fill="#006B37"/>
-                <rect x="21" y="22" width="6" height="16" rx="2" fill="#00863B"/>
-                <rect x="30" y="16" width="6" height="22" rx="2" fill="#006B37"/>
-                <polyline points="12,24 20,16 28,20 36,10" stroke="#C8A430" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              </svg>
+            <div class="card-meta">
+              <span class="card-label">Reporting</span>
             </div>
             <h3>Branch Reporter</h3>
             <p class="card-desc">Pobočkový reporting — přehled výkonu týmu, prémiový systém a motivační dashboard pro pracovníky i manažery.</p>
@@ -249,30 +430,33 @@
               <span class="tag tag-reporting">Reporting</span>
               <span class="tag tag-cs">ČS Demo</span>
             </div>
-            <a href="/branch-reporter/" class="btn btn-primary" style="background:#006B37;">Otevřít aplikaci</a>
+            <a href="/branch-reporter/" class="btn btn-primary">Otevřít aplikaci</a>
           </div>
         </div>
 
-        <!-- Card 3 — Interní e-shop (ACTIVE) -->
+        <!-- Interní e-shop -->
         <div class="app-card active">
-          <div class="card-accent" style="background: #00863B; height: 4px;"></div>
+          <div class="card-visual" style="background: linear-gradient(135deg, #E8F0FF 0%, #D0EEE0 100%);">
+            <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+              <circle cx="36" cy="36" r="28" fill="white" fill-opacity="0.7"/>
+              <path d="M14 22h6l9 24h24l6-18H21" stroke="#003DA5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="30" cy="53" r="3.5" fill="#003DA5"/>
+              <circle cx="46" cy="53" r="3.5" fill="#003DA5"/>
+              <path d="M33 33l4 4 8-8" stroke="#003DA5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
           <div class="card-body">
-            <div class="card-icon">
-              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="48" height="48" rx="12" fill="#d1f0dc"/>
-                <path d="M8 14h4l6 16h16l4-12H14" stroke="#00863B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="20" cy="36" r="2.5" fill="#00863B"/>
-                <circle cx="32" cy="36" r="2.5" fill="#00863B"/>
-                <path d="M22 22l3 3 6-6" stroke="#00863B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+            <div class="card-meta">
+              <span class="card-label">E-shop</span>
+              <span class="card-badge-new">Nové</span>
             </div>
             <h3>Interní e-shop</h3>
-            <p class="card-desc">Online katalog merch a kancelářských potřeb Česká spořitelna. Branded předměty a gadgety s logem banky.</p>
+            <p class="card-desc">Online katalog merch a kancelářských potřeb České spořitelny. Branded předměty a gadgety s logem banky.</p>
             <div class="card-tags">
               <span class="tag tag-new">Nové</span>
               <span class="tag tag-merch">Merch</span>
             </div>
-            <a href="/eshop/" class="btn btn-primary" style="background:#00863B;">Otevřít e-shop</a>
+            <a href="/eshop/" class="btn btn-primary">Otevřít e-shop</a>
           </div>
         </div>
 
@@ -282,7 +466,7 @@
 
   <footer>
     <div class="container">
-      <p style="color: rgba(255,255,255,0.6); font-size: 13px;">© 2025 Slovenská sporiteľňa, a.s. · Ukázkové aplikace · Powered by Keboola</p>
+      <p>© 2025 Česká spořitelna, a.s. · Ukázkové aplikace · Powered by <a href="https://www.keboola.com" target="_blank" rel="noopener">Keboola</a></p>
     </div>
   </footer>
 

@@ -7,11 +7,11 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 :root {
-  --primary: #006B37;
-  --primary-dark: #004d28;
-  --primary-light: #e8f5ee;
+  --primary: #003DA5;
+  --primary-dark: #002880;
+  --primary-light: #EEF4FF;
   --accent-gold: #C8A430;
-  --accent-blue: #1B3A6B;
+  --accent-blue: #003DA5;
   --bg: #f4f7f5;
   --surface: #ffffff;
   --text: #1a2e1e;
@@ -66,7 +66,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .selector-header p { color: var(--text-secondary); margin-top: 6px; font-size: 14px; }
 .selector-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 680px; margin: 32px auto 0; }
 .selector-card { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 32px 28px; cursor: default; text-align: center; transition: border-color .15s, box-shadow .15s; }
-.selector-card:hover { border-color: var(--primary); box-shadow: 0 6px 24px rgba(0,107,55,.14); }
+.selector-card:hover { border-color: var(--primary); box-shadow: 0 6px 24px rgba(0,61,165,.14); }
 .selector-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; margin-top: 16px; }
 .selector-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
 .selector-card select { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 14px; color: var(--text); background: #fff; margin-bottom: 12px; outline: none; }
@@ -81,7 +81,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 #view-employee { display: none; }
 
 .hero-wrap {
-  background: linear-gradient(135deg, #006B37 0%, #004d28 100%);
+  background: linear-gradient(135deg, #003DA5 0%, #002880 100%);
   border-radius: var(--radius);
   color: #fff;
   padding: 28px 32px;
@@ -115,7 +115,7 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 .wi-field label { font-size: 12px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px; }
 .wi-field input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 15px; font-weight: 700; outline: none; }
 .wi-field input:focus { border-color: var(--primary); }
-.whatif-result { background: linear-gradient(90deg, #e8f5ee, #f4f7f5); border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.whatif-result { background: linear-gradient(90deg, #EEF4FF, #f4f7f5); border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 .wi-val { font-size: 24px; font-weight: 800; color: var(--primary); }
 .wi-delta { font-size: 20px; font-weight: 800; }
 .wi-tier-pill { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 12px; color: #fff; display: inline-block; margin-top: 4px; }
@@ -241,8 +241,8 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
 <body>
 
 <header class="app-header">
-  <a href="/" class="back-link">← SLSP Data Apps</a>
-  <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#fff"/><text x="5" y="24" font-size="22" font-weight="900" font-family="Arial" fill="#006B37">S</text></svg>
+  <a href="/" class="back-link">← CSAS Data Apps</a>
+  <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#fff"/><text x="5" y="24" font-size="22" font-weight="900" font-family="Arial" fill="#003DA5">S</text></svg>
   <h1>Branch Reporter</h1>
   <span class="subtitle" id="hdr-sub">Česká spořitelna</span>
 </header>
@@ -266,14 +266,14 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
     </div>
     <div class="selector-grid">
       <div class="selector-card">
-        <svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#e8f5ee"/><path d="M28 14a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 18c8.837 0 16 3.581 16 8v2H12v-2c0-4.419 7.163-8 16-8z" fill="#006B37"/></svg>
+        <svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#EEF4FF"/><path d="M28 14a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 18c8.837 0 16 3.581 16 8v2H12v-2c0-4.419 7.163-8 16-8z" fill="#003DA5"/></svg>
         <h3>Jsem pracovník</h3>
         <p>Zobrazte svůj přehled výkonu, odhad prémie a bonusový stupeň.</p>
         <select id="emp-select"><option value="">— Vyberte svůj profil —</option></select>
         <button class="btn-primary" onclick="openEmployee()">Zobrazit přehled</button>
       </div>
       <div class="selector-card">
-        <svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#eef2f9"/><rect x="14" y="32" width="6" height="10" rx="2" fill="#1B3A6B"/><rect x="23" y="24" width="6" height="18" rx="2" fill="#1B3A6B"/><rect x="32" y="18" width="6" height="24" rx="2" fill="#1B3A6B"/><path d="M14 22l10-8 8 6 10-8" stroke="#C8A430" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#eef2f9"/><rect x="14" y="32" width="6" height="10" rx="2" fill="#003DA5"/><rect x="23" y="24" width="6" height="18" rx="2" fill="#003DA5"/><rect x="32" y="18" width="6" height="24" rx="2" fill="#003DA5"/><path d="M14 22l10-8 8 6 10-8" stroke="#C8A430" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <h3>Jsem manažer pobočky</h3>
         <p>Přehled výkonu celého týmu, alerting, product mix a bonus pool.</p>
         <button class="btn-primary btn-manager" onclick="openManager()">Otevřít dashboard</button>
@@ -611,7 +611,7 @@ function renderHistChart(emp,data){
   S.charts.hist=new Chart(ctx,{
     type:'line',
     data:{labels:['Týden 1','Týden 2','Týden 3','Týden 4'],datasets:[
-      {label:'Kumulativní provize',data:cumul,borderColor:'#006B37',backgroundColor:'rgba(0,107,55,.10)',fill:true,tension:.35,pointRadius:5,pointBackgroundColor:'#006B37'},
+      {label:'Kumulativní provize',data:cumul,borderColor:'#003DA5',backgroundColor:'rgba(0,61,165,.10)',fill:true,tension:.35,pointRadius:5,pointBackgroundColor:'#003DA5'},
       {label:'Měsíční cíl',data:[stats.target,stats.target,stats.target,stats.target],borderColor:'#C8A430',borderDash:[6,4],borderWidth:2,pointRadius:0,fill:false},
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:12,font:{size:11}}}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+'k',font:{size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{ticks:{font:{size:11}}}}},
@@ -690,10 +690,10 @@ function drawSpark(id,vals){
   const pts=vals.filter(v=>v>0);
   if(pts.length<2){ctx.fillStyle='#ccc';ctx.fillRect(0,h/2-1,w,2);return;}
   const max=Math.max(...pts), step=w/(pts.length-1);
-  ctx.beginPath(); ctx.strokeStyle='#006B37'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.strokeStyle='#003DA5'; ctx.lineWidth=2;
   pts.forEach((v,i)=>{ const x=i*step, y=h-(v/max)*(h-4)-2; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
   ctx.stroke();
-  pts.forEach((v,i)=>{ const x=i*step, y=h-(v/max)*(h-4)-2; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fillStyle='#006B37'; ctx.fill(); });
+  pts.forEach((v,i)=>{ const x=i*step, y=h-(v/max)*(h-4)-2; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fillStyle='#003DA5'; ctx.fill(); });
 }
 
 function renderBranchDonut(brPct,data){
@@ -701,7 +701,7 @@ function renderBranchDonut(brPct,data){
   if(S.charts.donut) S.charts.donut.destroy();
   S.charts.donut=new Chart(ctx,{
     type:'doughnut',
-    data:{labels:['Splněno','Zbývá'],datasets:[{data:[brPct*100,Math.max(0,(1-brPct)*100)],backgroundColor:['#006B37','#e8f5ee'],borderWidth:0}]},
+    data:{labels:['Splněno','Zbývá'],datasets:[{data:[brPct*100,Math.max(0,(1-brPct)*100)],backgroundColor:['#003DA5','#EEF4FF'],borderWidth:0}]},
     options:{cutout:'72%',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+c.parsed.toFixed(1)+' %'}}}},
     plugins:[{id:'ct',afterDraw(chart){
       const {ctx,chartArea:{width,top,bottom}}=chart, cx=width/2, cy=(top+bottom)/2;
@@ -726,7 +726,7 @@ function renderProdBar(allS,data){
 function renderWeekly(data){
   const ctx=document.getElementById('weekly-chart').getContext('2d');
   if(S.charts.wk) S.charts.wk.destroy();
-  const colors=['#006B37','#C8A430','#5B8DEF','#c41230','#9B59B6','#7A8FA6'];
+  const colors=['#003DA5','#C8A430','#5B8DEF','#c41230','#9B59B6','#7A8FA6'];
   const datasets=data.employees.map((emp,i)=>({
     label:emp.name.split(' ')[0], data:emp.weeklyEarned, borderColor:colors[i%colors.length],
     backgroundColor:'transparent', tension:.3, pointRadius:4, borderWidth:2,
