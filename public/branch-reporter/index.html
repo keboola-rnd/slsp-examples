@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Branch Reporter — Česká spořitelna</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --primary: #006B37;
+  --primary-dark: #004d28;
+  --primary-light: #e8f5ee;
+  --accent-gold: #C8A430;
+  --accent-blue: #1B3A6B;
+  --bg: #f4f7f5;
+  --surface: #ffffff;
+  --text: #1a2e1e;
+  --text-secondary: #5a7060;
+  --border: #d1e0d6;
+  --danger: #c41230;
+  --warning: #c45000;
+  --success: #006B37;
+  --tier-silver: #7A8FA6;
+  --tier-gold: #C8A430;
+  --tier-platinum: #5B8DEF;
+  --tier-diamond: #9B59B6;
+  --radius: 10px;
+  --shadow: 0 2px 10px rgba(0,80,30,0.10);
+  --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+.app-header {
+  background: var(--primary);
+  color: #fff;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.app-header .back-link { color: rgba(255,255,255,.75); text-decoration: none; font-size: 13px; white-space: nowrap; }
+.app-header .back-link:hover { color: #fff; }
+.app-header h1 { font-size: 18px; font-weight: 700; }
+.app-header .subtitle { font-size: 12px; color: rgba(255,255,255,.70); margin-left: auto; white-space: nowrap; }
+
+.nav-tabs { background: var(--primary-dark); display: flex; padding: 0 24px; gap: 4px; }
+.nav-tab { padding: 10px 20px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.65); cursor: pointer; border-bottom: 3px solid transparent; transition: color .15s, border-color .15s; user-select: none; }
+.nav-tab:hover { color: rgba(255,255,255,.90); }
+.nav-tab.active { color: #fff; border-bottom-color: var(--accent-gold); }
+
+.content { max-width: 1200px; margin: 0 auto; padding: 28px 24px 60px; }
+
+.card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; margin-bottom: 20px; }
+.card-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); margin-bottom: 16px; }
+
+/* SELECTOR */
+#view-selector { display: none; }
+.selector-header { text-align: center; padding: 40px 0 20px; }
+.selector-header h2 { font-size: 26px; font-weight: 700; }
+.selector-header p { color: var(--text-secondary); margin-top: 6px; font-size: 14px; }
+.selector-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 680px; margin: 32px auto 0; }
+.selector-card { background: var(--surface); border: 2px solid var(--border); border-radius: 14px; padding: 32px 28px; cursor: default; text-align: center; transition: border-color .15s, box-shadow .15s; }
+.selector-card:hover { border-color: var(--primary); box-shadow: 0 6px 24px rgba(0,107,55,.14); }
+.selector-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; margin-top: 16px; }
+.selector-card p { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+.selector-card select { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 14px; color: var(--text); background: #fff; margin-bottom: 12px; outline: none; }
+.selector-card select:focus { border-color: var(--primary); }
+.btn-primary { display: block; width: 100%; padding: 11px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-manager { background: var(--accent-blue); }
+.btn-manager:hover { background: #132d52; }
+.selector-info { text-align: center; margin-top: 20px; font-size: 12px; color: var(--text-secondary); }
+
+/* EMPLOYEE */
+#view-employee { display: none; }
+
+.hero-wrap {
+  background: linear-gradient(135deg, #006B37 0%, #004d28 100%);
+  border-radius: var(--radius);
+  color: #fff;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.hero-wrap::after { content:''; position:absolute; right:-40px; top:-40px; width:200px; height:200px; background:rgba(255,255,255,.05); border-radius:50%; }
+.hero-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.65); margin-bottom: 4px; }
+.hero-amount { font-size: 46px; font-weight: 800; line-height: 1; }
+.hero-sub { font-size: 13px; color: rgba(255,255,255,.70); margin-top: 6px; }
+.hero-countdown { background: rgba(255,255,255,.12); border-radius: 8px; padding: 8px 14px; margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.hero-right { text-align: right; }
+.hero-pct { font-size: 38px; font-weight: 800; }
+.hero-pct-label { font-size: 13px; color: rgba(255,255,255,.70); }
+.tier-badge-hero { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; margin-top: 10px; background: rgba(255,255,255,.15); border: 1.5px solid rgba(255,255,255,.35); }
+
+/* TIER TRACK */
+.tier-track { display: flex; height: 38px; border-radius: 8px; overflow: hidden; border: 1.5px solid var(--border); margin-bottom: 10px; }
+.tier-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; transition: opacity .2s; }
+.tier-seg.inactive { opacity: .35; }
+.tier-labels-row { display: flex; font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; }
+.tier-labels-row span { flex: 1; text-align: center; font-weight: 600; }
+.tier-msg { font-size: 13px; color: var(--text-secondary); padding: 10px 14px; background: var(--primary-light); border-radius: 7px; border-left: 3px solid var(--primary); }
+
+/* WHAT-IF */
+.whatif-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.wi-field label { font-size: 12px; color: var(--text-secondary); font-weight: 600; display: block; margin-bottom: 4px; }
+.wi-field input { width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 15px; font-weight: 700; outline: none; }
+.wi-field input:focus { border-color: var(--primary); }
+.whatif-result { background: linear-gradient(90deg, #e8f5ee, #f4f7f5); border-radius: 8px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.wi-val { font-size: 24px; font-weight: 800; color: var(--primary); }
+.wi-delta { font-size: 20px; font-weight: 800; }
+.wi-tier-pill { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 12px; color: #fff; display: inline-block; margin-top: 4px; }
+
+/* PRODUCT TABLE */
+.prod-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.prod-table th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); border-bottom: 2px solid var(--border); }
+.prod-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.prod-table tr:last-child td { border-bottom: none; }
+.prod-table tr.r-ok td:first-child { border-left: 3px solid var(--success); }
+.prod-table tr.r-warn td:first-child { border-left: 3px solid var(--warning); }
+.prod-table tr.r-danger td:first-child { border-left: 3px solid var(--danger); }
+.bar-bg { height: 8px; background: var(--border); border-radius: 4px; min-width: 80px; }
+.bar-fill { height: 100%; border-radius: 4px; }
+.bar-ok { background: var(--success); }
+.bar-warn { background: var(--warning); }
+.bar-danger { background: var(--danger); }
+
+/* RANKING */
+.ranking-list { list-style: none; }
+.rank-item { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+.rank-item:last-child { border-bottom: none; }
+.rank-num { font-size: 18px; font-weight: 800; width: 28px; color: var(--text-secondary); }
+.rank-num.r1 { color: var(--accent-gold); }
+.rank-num.r2 { color: var(--tier-silver); }
+.rank-num.r3 { color: #cd7f32; }
+.rank-av { width: 34px; height: 34px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--primary); flex-shrink: 0; }
+.rank-name { font-weight: 600; font-size: 14px; flex: 1; }
+.rank-name.me { color: var(--primary); }
+.you-tag { font-size: 10px; background: var(--primary); color: #fff; padding: 1px 6px; border-radius: 4px; margin-left: 4px; }
+.avg-line { margin-top: 10px; font-size: 12px; color: var(--text-secondary); padding-top: 10px; border-top: 1px dashed var(--border); }
+
+/* 2-COL GRID */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.hist-wrap { position: relative; height: 180px; }
+
+/* MANAGER */
+#view-manager { display: none; }
+.stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: var(--surface); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); border-top: 3px solid var(--primary); }
+.stat-card.warn { border-top-color: var(--warning); }
+.stat-card.err { border-top-color: var(--danger); }
+.stat-card.gold { border-top-color: var(--accent-gold); }
+.stat-lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); margin-bottom: 6px; }
+.stat-val { font-size: 30px; font-weight: 800; line-height: 1; }
+.stat-sub { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+/* TEAM TABLE */
+.team-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.team-table th { padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-secondary); border-bottom: 2px solid var(--border); background: #fafcfb; }
+.team-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.team-table tbody tr { cursor: pointer; transition: background .1s; }
+.team-table tbody tr:hover { background: var(--primary-light); }
+.team-table tbody tr.expanded { background: var(--primary-light); }
+.av { width: 34px; height: 34px; border-radius: 50%; background: var(--primary-light); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--primary); margin-right: 10px; flex-shrink: 0; }
+.emp-cell { display: flex; align-items: center; }
+.emp-nm { font-weight: 600; }
+.emp-rl { font-size: 12px; color: var(--text-secondary); }
+.tier-pill { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; }
+.expand-row { display: none; }
+.expand-row.open { display: table-row; }
+.expand-td { padding: 0 14px 16px 70px !important; background: #f7fbf8; border-bottom: 2px solid var(--border); }
+.mini-tbl { width: 100%; font-size: 13px; border-collapse: collapse; }
+.mini-tbl td { padding: 5px 8px; }
+
+/* CHARTS */
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+.chart-h220 { position: relative; height: 220px; }
+.chart-h200 { position: relative; height: 200px; }
+
+/* ALERTS */
+.alert-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.alert-card { background: var(--surface); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+.alert-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+.alert-title.red { color: var(--danger); }
+.alert-title.orange { color: var(--warning); }
+.alert-title.green { color: var(--primary); }
+.alert-item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.alert-item:last-child { border-bottom: none; }
+.a-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.empty-st { font-size: 13px; color: var(--text-secondary); font-style: italic; }
+
+/* TOP PERFORMERS */
+.top-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.top-card { border: 2px solid var(--accent-gold); border-radius: var(--radius); padding: 18px; background: linear-gradient(135deg, #fffbec, #fff); display: flex; align-items: center; gap: 14px; }
+.top-rank { font-size: 28px; font-weight: 800; color: var(--accent-gold); width: 36px; text-align: center; }
+.top-info .tn { font-weight: 700; font-size: 15px; }
+.top-info .tr { font-size: 12px; color: var(--text-secondary); }
+.top-info .tp { font-size: 20px; font-weight: 800; color: var(--primary); margin-top: 4px; }
+
+/* CROSS-SELL + POOL */
+.bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.csb-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
+.csb-nm { width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.csb-bg { flex: 1; height: 8px; background: var(--border); border-radius: 4px; }
+.csb-fill { height: 100%; border-radius: 4px; }
+.csb-val { font-weight: 700; width: 34px; text-align: right; flex-shrink: 0; }
+.bench-line { font-size: 12px; color: var(--text-secondary); margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.pool-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.pool-row:last-child { border-bottom: none; font-weight: 700; font-size: 16px; color: var(--primary); }
+.pool-lbl { color: var(--text-secondary); }
+
+/* LOADING */
+.loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,.88); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; gap: 12px; color: var(--primary); font-size: 15px; }
+.spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* UTILS */
+.hidden { display: none !important; }
+.fw7 { font-weight: 700; }
+.tg { color: var(--success); }
+.tr2 { color: var(--danger); }
+.to { color: var(--warning); }
+.ts { color: var(--text-secondary); }
+
+@media(max-width:800px){
+  .selector-grid,.charts-row,.alert-row,.top-row,.bottom-row,.two-col,.stat-row{ grid-template-columns:1fr; }
+  .whatif-inputs{ grid-template-columns:1fr; }
+  .hero-wrap{ grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <a href="/" class="back-link">← SLSP Data Apps</a>
+  <svg width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#fff"/><text x="5" y="24" font-size="22" font-weight="900" font-family="Arial" fill="#006B37">S</text></svg>
+  <h1>Branch Reporter</h1>
+  <span class="subtitle" id="hdr-sub">Česká spořitelna</span>
+</header>
+
+<nav class="nav-tabs hidden" id="nav-tabs">
+  <div class="nav-tab active" id="tab-emp" onclick="switchTab('emp')">Pracovník</div>
+  <div class="nav-tab" id="tab-mgr" onclick="switchTab('mgr')">Manažer pobočky</div>
+</nav>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div>Načítám data pobočky…</div>
+</div>
+
+<!-- SELECTOR -->
+<div id="view-selector">
+  <div class="content">
+    <div class="selector-header">
+      <h2>Pobočkový reporting</h2>
+      <p id="sel-sub">Praha 1 – Václavské náměstí &nbsp;|&nbsp; Duben 2026</p>
+    </div>
+    <div class="selector-grid">
+      <div class="selector-card">
+        <svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#e8f5ee"/><path d="M28 14a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 18c8.837 0 16 3.581 16 8v2H12v-2c0-4.419 7.163-8 16-8z" fill="#006B37"/></svg>
+        <h3>Jsem pracovník</h3>
+        <p>Zobrazte svůj přehled výkonu, odhad prémie a bonusový stupeň.</p>
+        <select id="emp-select"><option value="">— Vyberte svůj profil —</option></select>
+        <button class="btn-primary" onclick="openEmployee()">Zobrazit přehled</button>
+      </div>
+      <div class="selector-card">
+        <svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="28" fill="#eef2f9"/><rect x="14" y="32" width="6" height="10" rx="2" fill="#1B3A6B"/><rect x="23" y="24" width="6" height="18" rx="2" fill="#1B3A6B"/><rect x="32" y="18" width="6" height="24" rx="2" fill="#1B3A6B"/><path d="M14 22l10-8 8 6 10-8" stroke="#C8A430" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Jsem manažer pobočky</h3>
+        <p>Přehled výkonu celého týmu, alerting, product mix a bonus pool.</p>
+        <button class="btn-primary btn-manager" onclick="openManager()">Otevřít dashboard</button>
+      </div>
+    </div>
+    <p class="selector-info">Demo data — Česká spořitelna, Praha 1 – Václavské náměstí, Duben 2026</p>
+  </div>
+</div>
+
+<!-- EMPLOYEE VIEW -->
+<div id="view-employee">
+  <div class="content">
+    <div class="hero-wrap" id="hero">
+      <div>
+        <div class="hero-label">Odhadovaná prémie — <span id="h-month"></span></div>
+        <div class="hero-amount" id="h-amount">—</div>
+        <div class="hero-sub" id="h-sub"></div>
+        <div class="hero-countdown">
+          <svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7" stroke="#fff" stroke-width="1.5" fill="none"/><path d="M8 4v4l3 2" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Zbývá <strong id="h-days"></strong>&nbsp;dní do konce měsíce
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-label">Plnění cíle</div>
+        <div class="hero-pct" id="h-pct">—</div>
+        <div class="hero-pct-label">celkového měsíčního cíle</div>
+        <div class="tier-badge-hero" id="h-tier">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Bonusový stupeň</div>
+      <div class="tier-track" id="tier-track"></div>
+      <div class="tier-labels-row" id="tier-labels"></div>
+      <div class="tier-msg" id="tier-msg"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Co kdybych uzavřel/a více?</div>
+      <div class="whatif-inputs" id="wi-inputs"></div>
+      <div class="whatif-result">
+        <div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Celková prémie po přidání smluv</div>
+          <div class="wi-val" id="wi-total">—</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:4px">Změna vs. aktuálně</div>
+          <div class="wi-delta" id="wi-delta">—</div>
+          <div class="wi-tier-pill" id="wi-tier">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Přehled produktů — <span id="prod-month"></span></div>
+      <table class="prod-table">
+        <thead><tr><th>Produkt</th><th>Uzavřeno</th><th>Cíl</th><th>Plnění</th><th>Provize (Kč)</th><th style="min-width:100px">Průběh</th></tr></thead>
+        <tbody id="prod-tbody"></tbody>
+      </table>
+      <div style="font-size:12px;color:var(--text-secondary);text-align:right;padding-top:10px;border-top:1px solid var(--border);margin-top:4px">
+        Celkem uzavřená provize: <strong class="tg" id="prod-earned"></strong> &nbsp;/&nbsp; Cíl: <strong id="prod-target"></strong>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">Pořadí v týmu</div>
+        <ul class="ranking-list" id="rank-list"></ul>
+        <div class="avg-line" id="avg-line"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Vývoj v čase (Kč, kumulativně)</div>
+        <div class="hist-wrap"><canvas id="hist-chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGER VIEW -->
+<div id="view-manager">
+  <div class="content">
+    <div class="stat-row" id="stat-row"></div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">Tým pobočky — výkon k <span id="mgr-day"></span>. dni měsíce</div>
+      <table class="team-table">
+        <thead><tr><th>Pracovník</th><th>% Cíle</th><th>Stupeň</th><th>Prémie (est.)</th><th>Cross-sell</th><th>Trend</th><th style="width:36px"></th></tr></thead>
+        <tbody id="team-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="charts-row">
+      <div class="card">
+        <div class="card-title">Pobočka vs. cíl</div>
+        <div class="chart-h220"><canvas id="branch-donut"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Plnění dle produktu (%)</div>
+        <div class="chart-h220"><canvas id="prod-bar"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Týdenní vývoj — uzavřené provize (Kč)</div>
+      <div class="chart-h200"><canvas id="weekly-chart"></canvas></div>
+    </div>
+
+    <div class="alert-row">
+      <div class="alert-card"><div class="alert-title red">Pozornost vyžadují</div><div id="al-danger"></div></div>
+      <div class="alert-card"><div class="alert-title orange">Blíží se tier upgrade</div><div id="al-upgrade"></div></div>
+      <div class="alert-card"><div class="alert-title green">Nejlepší výkony</div><div id="al-top"></div></div>
+    </div>
+
+    <div class="top-row" id="top-row"></div>
+
+    <div class="bottom-row">
+      <div class="card">
+        <div class="card-title">Cross-sell rate (prům. produkty/klient)</div>
+        <div id="cs-bars"></div>
+        <div class="bench-line" id="cs-bench"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Celkový bonus pool pobočky</div>
+        <div id="pool-rows"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const S = { view:'selector', empId:null, data:null, charts:{}, wiExtra:{} };
+
+function czk(n){ return new Intl.NumberFormat('cs-CZ',{style:'currency',currency:'CZK',maximumFractionDigits:0}).format(n); }
+function pct(n,d=1){ return (n*100).toFixed(d)+' %'; }
+
+function getProductMap(data){ const m={}; data.products.forEach(p=>m[p.id]=p); return m; }
+
+function calcEmpStats(emp, data){
+  const pm=getProductMap(data);
+  let earned=0, target=0;
+  Object.entries(emp.products).forEach(([id,v])=>{
+    const cpu=pm[id]?pm[id].commissionPerUnit:0;
+    earned+=v.sold*cpu; target+=v.target*cpu;
+  });
+  const ovPct=target>0?earned/target:0;
+  const tier=getTier(ovPct,data.tiers);
+  const csBonus=emp.crossSellRate>=data.teamBonuses.crossSellThreshold
+    ?emp.clientsWithCrossSell*data.teamBonuses.crossSellPerClient:0;
+  const bonus=Math.round(earned*tier.multiplier+csBonus);
+  return{earned,target,ovPct,tier,csBonus,bonus};
+}
+
+function getTier(p,tiers){
+  for(let i=tiers.length-1;i>=0;i--) if(p>=tiers[i].minPct) return tiers[i];
+  return tiers[0];
+}
+
+function nextTier(cur,tiers){
+  const i=tiers.findIndex(t=>t.id===cur.id);
+  return i<tiers.length-1?tiers[i+1]:null;
+}
+
+function branchAvgPct(data){ return data.employees.reduce((s,e)=>s+calcEmpStats(e,data).ovPct,0)/data.employees.length; }
+
+function branchTotalPct(data){
+  let e=0,t=0;
+  data.employees.forEach(emp=>{ const s=calcEmpStats(emp,data); e+=s.earned; t+=s.target; });
+  return t>0?e/t:0;
+}
+
+// Navigation
+function switchTab(tab){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('view-employee').style.display=tab==='emp'?'block':'none';
+  document.getElementById('view-manager').style.display=tab==='mgr'?'block':'none';
+  document.getElementById('view-selector').style.display='none';
+}
+
+function openEmployee(){
+  const id=parseInt(document.getElementById('emp-select').value);
+  if(!id){alert('Vyberte prosím svůj profil.');return;}
+  S.empId=id;
+  show('view-employee');
+  document.getElementById('nav-tabs').classList.remove('hidden');
+  document.getElementById('tab-emp').classList.add('active');
+  document.getElementById('tab-mgr').classList.remove('active');
+  document.getElementById('view-manager').style.display='none';
+  renderEmployee(id);
+}
+
+function openManager(){
+  show('view-manager');
+  document.getElementById('nav-tabs').classList.remove('hidden');
+  document.getElementById('tab-mgr').classList.add('active');
+  document.getElementById('tab-emp').classList.remove('active');
+  document.getElementById('view-employee').style.display='none';
+  renderManager();
+}
+
+function show(id){
+  ['view-selector','view-employee','view-manager'].forEach(v=>document.getElementById(v).style.display='none');
+  document.getElementById(id).style.display='block';
+}
+
+// ── EMPLOYEE RENDER ──────────────────────────────────────────────────────────
+function renderEmployee(empId){
+  const data=S.data, emp=data.employees.find(e=>e.id===empId);
+  const pm=getProductMap(data);
+  const stats=calcEmpStats(emp,data);
+  const {daysCurrent,daysInMonth,daysRemaining,currentMonth}=data.branch;
+
+  document.getElementById('h-month').textContent=currentMonth;
+  document.getElementById('h-amount').textContent=czk(stats.bonus);
+  document.getElementById('h-sub').textContent=`násobič ${stats.tier.multiplier}× + cross-sell bonus ${czk(stats.csBonus)}`;
+  document.getElementById('h-days').textContent=daysRemaining;
+  document.getElementById('h-pct').textContent=pct(stats.ovPct);
+  const tb=document.getElementById('h-tier');
+  tb.textContent=stats.tier.label; tb.style.borderColor=stats.tier.color; tb.style.color=stats.tier.color;
+  document.getElementById('prod-month').textContent=currentMonth;
+
+  renderTierTrack(stats,data.tiers,emp,pm);
+  renderWhatIf(emp,data);
+  renderProdTable(emp,pm,data);
+  renderRanking(empId,data);
+  renderHistChart(emp,data);
+}
+
+function renderTierTrack(stats,tiers,emp,pm){
+  const track=document.getElementById('tier-track');
+  const labels=document.getElementById('tier-labels');
+  const widths=[12,20,20,15,33];
+  track.innerHTML=''; labels.innerHTML='';
+  tiers.forEach((t,i)=>{
+    const s=document.createElement('div');
+    s.className='tier-seg'+(t.id===stats.tier.id?'':' inactive');
+    s.style.cssText=`background:${t.color};flex:${widths[i]}`;
+    s.textContent=t.label;
+    track.appendChild(s);
+    const l=document.createElement('span');
+    l.style.cssText=`flex:${widths[i]};color:${t.color};font-weight:700`;
+    l.textContent=['<70%','70%','90%','110%','125%'][i];
+    labels.appendChild(l);
+  });
+  const next=nextTier(stats.tier,tiers);
+  const msgEl=document.getElementById('tier-msg');
+  if(!next){
+    msgEl.textContent='Gratulujeme! Jste na nejvyšším stupni Diamant (2.2× násobič). Udržte tempo!';
+  } else {
+    let earned=0,target=0;
+    Object.entries(emp.products).forEach(([id,v])=>{ const cpu=pm[id]?.commissionPerUnit||0; earned+=v.sold*cpu; target+=v.target*cpu; });
+    const needed=Math.round((next.minPct-stats.ovPct)*target);
+    msgEl.textContent=`Do stupně ${next.label} (${next.multiplier}×) zbývá ${pct(next.minPct-stats.ovPct,1)} — přibližně ${czk(needed)} na uzavřených provizích.`;
+  }
+}
+
+function renderWhatIf(emp,data){
+  const pm=getProductMap(data);
+  const cont=document.getElementById('wi-inputs');
+  cont.innerHTML='';
+  const sorted=Object.entries(emp.products).filter(([,v])=>v.target>0).sort(([,a],[,b])=>(a.sold/a.target)-(b.sold/b.target)).slice(0,4);
+  sorted.forEach(([id,v])=>{
+    S.wiExtra[id]=S.wiExtra[id]||0;
+    const d=document.createElement('div'); d.className='wi-field';
+    d.innerHTML=`<label>${pm[id]?.name} (+${czk(pm[id]?.commissionPerUnit)}/ks)</label><input type="number" min="0" max="20" value="${S.wiExtra[id]}" data-pid="${id}" oninput="onWI(this)">`;
+    cont.appendChild(d);
+  });
+  updateWI(emp,data);
+}
+
+function onWI(inp){ S.wiExtra[inp.dataset.pid]=Math.max(0,parseInt(inp.value)||0); const emp=S.data.employees.find(e=>e.id===S.empId); updateWI(emp,S.data); }
+
+function updateWI(emp,data){
+  const pm=getProductMap(data);
+  let earned=0,target=0;
+  Object.entries(emp.products).forEach(([id,v])=>{ const cpu=pm[id]?.commissionPerUnit||0; earned+=(v.sold+(S.wiExtra[id]||0))*cpu; target+=v.target*cpu; });
+  const np=target>0?earned/target:0;
+  const tier=getTier(np,data.tiers);
+  const csB=emp.crossSellRate>=data.teamBonuses.crossSellThreshold?emp.clientsWithCrossSell*data.teamBonuses.crossSellPerClient:0;
+  const nb=Math.round(earned*tier.multiplier+csB);
+  const base=calcEmpStats(emp,data).bonus;
+  const delta=nb-base;
+  document.getElementById('wi-total').textContent=czk(nb);
+  const de=document.getElementById('wi-delta');
+  de.textContent=(delta>=0?'+':'')+czk(delta);
+  de.className='wi-delta '+(delta>0?'tg':delta<0?'tr2':'');
+  const te=document.getElementById('wi-tier');
+  te.textContent=tier.label; te.style.background=tier.color;
+}
+
+function renderProdTable(emp,pm,data){
+  const tbody=document.getElementById('prod-tbody');
+  tbody.innerHTML='';
+  let te=0,tt=0;
+  const rows=Object.entries(emp.products).map(([id,v])=>{
+    const cpu=pm[id]?.commissionPerUnit||0;
+    const e=v.sold*cpu, t=v.target*cpu;
+    const p=v.target>0?v.sold/v.target:1;
+    return{id,v,cpu,e,t,p};
+  }).sort((a,b)=>a.p-b.p);
+  rows.forEach(({id,v,cpu,e,t,p})=>{
+    te+=e; tt+=t;
+    const rc=p>=0.9?'r-ok':p>=0.5?'r-warn':'r-danger';
+    const bc=p>=0.9?'bar-ok':p>=0.5?'bar-warn':'bar-danger';
+    const pc=p>=0.9?'tg':p>=0.5?'to':'tr2';
+    const w=Math.min(100,Math.round(p*100));
+    const tr=document.createElement('tr'); tr.className=rc;
+    tr.innerHTML=`<td>${pm[id]?.name||id}</td><td class="fw7">${v.sold}</td><td class="ts">${v.target}</td><td class="fw7 ${pc}">${v.target>0?pct(p,0):'—'}</td><td class="fw7 tg">${czk(e)}</td><td><div class="bar-bg"><div class="bar-fill ${bc}" style="width:${w}%"></div></div></td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('prod-earned').textContent=czk(te);
+  document.getElementById('prod-target').textContent=czk(tt);
+}
+
+function renderRanking(myId,data){
+  const ranked=data.employees.map(e=>({emp:e,stats:calcEmpStats(e,data)})).sort((a,b)=>b.stats.ovPct-a.stats.ovPct);
+  const list=document.getElementById('rank-list'); list.innerHTML='';
+  ranked.forEach((r,i)=>{
+    const isMe=r.emp.id===myId;
+    const rc=['r1','r2','r3'][i]||'';
+    const li=document.createElement('li'); li.className='rank-item';
+    li.innerHTML=`<span class="rank-num ${rc}">${i+1}.</span><div class="rank-av">${r.emp.initials}</div><span class="rank-name${isMe?' me':''}">${isMe?r.emp.name:'Kolega '+String.fromCharCode(65+i)}${isMe?'<span class="you-tag">Vy</span>':''}</span><span class="fw7 ${r.stats.ovPct>=0.9?'tg':r.stats.ovPct>=0.7?'to':'tr2'}">${pct(r.stats.ovPct)}</span>`;
+    list.appendChild(li);
+  });
+  const avg=branchAvgPct(data);
+  document.getElementById('avg-line').textContent=`Průměr pobočky: ${pct(avg)} — Cíl: 100 %`;
+}
+
+function renderHistChart(emp,data){
+  const ctx=document.getElementById('hist-chart').getContext('2d');
+  if(S.charts.hist) S.charts.hist.destroy();
+  const stats=calcEmpStats(emp,data);
+  let sum=0;
+  const cumul=emp.weeklyEarned.map(v=>{sum+=v;return sum;});
+  S.charts.hist=new Chart(ctx,{
+    type:'line',
+    data:{labels:['Týden 1','Týden 2','Týden 3','Týden 4'],datasets:[
+      {label:'Kumulativní provize',data:cumul,borderColor:'#006B37',backgroundColor:'rgba(0,107,55,.10)',fill:true,tension:.35,pointRadius:5,pointBackgroundColor:'#006B37'},
+      {label:'Měsíční cíl',data:[stats.target,stats.target,stats.target,stats.target],borderColor:'#C8A430',borderDash:[6,4],borderWidth:2,pointRadius:0,fill:false},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:12,font:{size:11}}}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+'k',font:{size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{ticks:{font:{size:11}}}}},
+  });
+}
+
+// ── MANAGER RENDER ───────────────────────────────────────────────────────────
+function renderManager(){
+  const data=S.data;
+  document.getElementById('mgr-day').textContent=data.branch.daysCurrent;
+  const brPct=branchTotalPct(data);
+  const allS=data.employees.map(e=>({emp:e,stats:calcEmpStats(e,data)}));
+  const pool=allS.reduce((s,r)=>s+r.stats.bonus,0);
+  const proj=brPct*(data.branch.daysInMonth/data.branch.daysCurrent);
+
+  // Stat cards
+  const sr=document.getElementById('stat-row'); sr.innerHTML='';
+  [{lbl:'Plnění pobočky',val:pct(brPct),sub:`Prognóza: ${pct(proj)}`,cls:brPct>=0.9?'':brPct>=0.7?'warn':'err'},
+   {lbl:'Celkový bonus pool',val:czk(pool),sub:'odhad za aktuální výkon',cls:'gold'},
+   {lbl:'Zbývá dní',val:data.branch.daysRemaining,sub:`z ${data.branch.daysInMonth} dní`,cls:''},
+   {lbl:'Pracovníků na cíli',val:`${allS.filter(r=>r.stats.ovPct>=0.9).length}/${allS.length}`,sub:'na 90 % cíle nebo více',cls:''},
+  ].forEach(c=>{ const d=document.createElement('div'); d.className='stat-card '+(c.cls||''); d.innerHTML=`<div class="stat-lbl">${c.lbl}</div><div class="stat-val">${c.val}</div><div class="stat-sub">${c.sub}</div>`; sr.appendChild(d); });
+
+  renderTeamTable(allS,data);
+  renderBranchDonut(brPct,data);
+  renderProdBar(allS,data);
+  renderWeekly(data);
+  renderAlerts(allS,data);
+  renderTopPerf(allS,data);
+  renderCrossSell(allS,data);
+  renderPool(allS,data);
+}
+
+function renderTeamTable(allS,data){
+  const tbody=document.getElementById('team-tbody'); tbody.innerHTML='';
+  const sorted=[...allS].sort((a,b)=>b.stats.ovPct-a.stats.ovPct);
+  sorted.forEach(({emp,stats})=>{
+    const alerts=[];
+    if(stats.ovPct<0.70) alerts.push('<span title="Pod 70 % cíle" style="font-size:15px">🔴</span>');
+    const nt=nextTier(stats.tier,data.tiers);
+    if(nt&&(nt.minPct-stats.ovPct)<0.05&&nt.minPct>stats.ovPct) alerts.push('<span title="Blíží se tier upgrade" style="font-size:15px">⬆️</span>');
+    const sid=`sp-${emp.id}`;
+    const tr=document.createElement('tr'); tr.dataset.empid=emp.id; tr.onclick=()=>toggleEx(emp.id);
+    tr.innerHTML=`<td><div class="emp-cell"><div class="av">${emp.initials}</div><div><div class="emp-nm">${emp.name}</div><div class="emp-rl">${emp.role}</div></div></div></td><td class="fw7 ${stats.ovPct>=0.9?'tg':stats.ovPct>=0.7?'to':'tr2'}">${pct(stats.ovPct)}</td><td><span class="tier-pill" style="background:${stats.tier.color}">${stats.tier.label}</span></td><td class="fw7">${czk(stats.bonus)}</td><td>${emp.crossSellRate.toFixed(1)}</td><td><canvas id="${sid}" width="80" height="32"></canvas></td><td>${alerts.join('')}</td>`;
+    tbody.appendChild(tr);
+
+    // Expand
+    const pm=getProductMap(data);
+    const miniRows=Object.entries(emp.products).map(([id,v])=>{
+      const cpu=pm[id]?.commissionPerUnit||0;
+      const p=v.target>0?v.sold/v.target:1;
+      const w=Math.min(100,Math.round(p*100));
+      const bc=p>=0.9?'var(--success)':p>=0.5?'var(--warning)':'var(--danger)';
+      return `<tr><td>${pm[id]?.name||id}</td><td class="fw7">${v.sold}/${v.target}</td><td class="${p>=0.9?'tg':p>=0.5?'to':'tr2'}">${v.target>0?pct(p,0):'—'}</td><td>${czk(v.sold*cpu)}</td><td style="min-width:80px"><div class="bar-bg"><div class="bar-fill" style="width:${w}%;background:${bc}"></div></div></td></tr>`;
+    }).join('');
+    const ex=document.createElement('tr'); ex.className='expand-row'; ex.id='ex-'+emp.id;
+    ex.innerHTML=`<td colspan="7" class="expand-td"><table class="mini-tbl"><thead><tr><th>Produkt</th><th>Prod./Cíl</th><th>%</th><th>Provize</th><th>Průběh</th></tr></thead><tbody>${miniRows}</tbody></table></td>`;
+    tbody.appendChild(ex);
+    setTimeout(()=>drawSpark(sid,emp.weeklyEarned),0);
+  });
+}
+
+function toggleEx(empId){
+  const row=document.getElementById('ex-'+empId);
+  const mrow=document.querySelector(`tr[data-empid="${empId}"]`);
+  const open=row.classList.contains('open');
+  document.querySelectorAll('.expand-row').forEach(r=>r.classList.remove('open'));
+  document.querySelectorAll('tr[data-empid]').forEach(r=>r.classList.remove('expanded'));
+  if(!open){row.classList.add('open');mrow.classList.add('expanded');}
+}
+
+function drawSpark(id,vals){
+  const c=document.getElementById(id); if(!c)return;
+  const ctx=c.getContext('2d'), w=c.width, h=c.height;
+  ctx.clearRect(0,0,w,h);
+  const pts=vals.filter(v=>v>0);
+  if(pts.length<2){ctx.fillStyle='#ccc';ctx.fillRect(0,h/2-1,w,2);return;}
+  const max=Math.max(...pts), step=w/(pts.length-1);
+  ctx.beginPath(); ctx.strokeStyle='#006B37'; ctx.lineWidth=2;
+  pts.forEach((v,i)=>{ const x=i*step, y=h-(v/max)*(h-4)-2; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y); });
+  ctx.stroke();
+  pts.forEach((v,i)=>{ const x=i*step, y=h-(v/max)*(h-4)-2; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fillStyle='#006B37'; ctx.fill(); });
+}
+
+function renderBranchDonut(brPct,data){
+  const ctx=document.getElementById('branch-donut').getContext('2d');
+  if(S.charts.donut) S.charts.donut.destroy();
+  S.charts.donut=new Chart(ctx,{
+    type:'doughnut',
+    data:{labels:['Splněno','Zbývá'],datasets:[{data:[brPct*100,Math.max(0,(1-brPct)*100)],backgroundColor:['#006B37','#e8f5ee'],borderWidth:0}]},
+    options:{cutout:'72%',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.label+': '+c.parsed.toFixed(1)+' %'}}}},
+    plugins:[{id:'ct',afterDraw(chart){
+      const {ctx,chartArea:{width,top,bottom}}=chart, cx=width/2, cy=(top+bottom)/2;
+      ctx.save(); ctx.font='bold 26px Segoe UI'; ctx.fillStyle='#1a2e1e'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(pct(brPct,0),cx,cy-8); ctx.font='12px Segoe UI'; ctx.fillStyle='#5a7060'; ctx.fillText('plnění cíle',cx,cy+14); ctx.restore();
+    }}],
+  });
+}
+
+function renderProdBar(allS,data){
+  const ctx=document.getElementById('prod-bar').getContext('2d');
+  if(S.charts.pb) S.charts.pb.destroy();
+  const labels=data.products.map(p=>p.name);
+  const vals=data.products.map(p=>{ let s=0,t=0; allS.forEach(r=>{ const v=r.emp.products[p.id]; if(v){s+=v.sold;t+=v.target;} }); return t>0?Math.round((s/t)*100):0; });
+  const colors=vals.map(v=>v>=90?'#006B37':v>=50?'#c45000':'#c41230');
+  S.charts.pb=new Chart(ctx,{
+    type:'bar', data:{labels,datasets:[{label:'% plnění',data:vals,backgroundColor:colors,borderRadius:4}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x+' %'}}},scales:{x:{max:150,ticks:{callback:v=>v+' %',font:{size:10}},grid:{color:'rgba(0,0,0,.06)'}},y:{ticks:{font:{size:10}}}}},
+  });
+}
+
+function renderWeekly(data){
+  const ctx=document.getElementById('weekly-chart').getContext('2d');
+  if(S.charts.wk) S.charts.wk.destroy();
+  const colors=['#006B37','#C8A430','#5B8DEF','#c41230','#9B59B6','#7A8FA6'];
+  const datasets=data.employees.map((emp,i)=>({
+    label:emp.name.split(' ')[0], data:emp.weeklyEarned, borderColor:colors[i%colors.length],
+    backgroundColor:'transparent', tension:.3, pointRadius:4, borderWidth:2,
+  }));
+  S.charts.wk=new Chart(ctx,{
+    type:'line', data:{labels:['Týden 1','Týden 2','Týden 3','Týden 4'],datasets},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+czk(c.parsed.y)}}},scales:{y:{ticks:{callback:v=>(v/1000).toFixed(0)+'k',font:{size:11}},grid:{color:'rgba(0,0,0,.06)'}},x:{ticks:{font:{size:11}}}}},
+  });
+}
+
+function renderAlerts(allS,data){
+  const sorted=[...allS].sort((a,b)=>b.stats.ovPct-a.stats.ovPct);
+  // Danger
+  const danger=allS.filter(r=>r.stats.ovPct<0.70);
+  document.getElementById('al-danger').innerHTML=danger.length===0
+    ?'<div class="empty-st">Nikdo pod 70 % — skvěle!</div>'
+    :danger.map(r=>`<div class="alert-item"><div class="a-dot" style="background:var(--danger)"></div><div><strong>${r.emp.name}</strong><br><span style="font-size:11px;color:var(--text-secondary)">${pct(r.stats.ovPct)} cíle</span></div></div>`).join('');
+  // Upgrade
+  const ups=allS.filter(r=>{ const nt=nextTier(r.stats.tier,data.tiers); return nt&&(nt.minPct-r.stats.ovPct)<0.05&&nt.minPct>r.stats.ovPct; });
+  document.getElementById('al-upgrade').innerHTML=ups.length===0
+    ?'<div class="empty-st">Nikdo těsně pod hranicí.</div>'
+    :ups.map(r=>{ const nt=nextTier(r.stats.tier,data.tiers); return `<div class="alert-item"><div class="a-dot" style="background:${nt.color}"></div><div><strong>${r.emp.name}</strong><br><span style="font-size:11px;color:var(--text-secondary)">Do ${nt.label} zbývá ${pct(nt.minPct-r.stats.ovPct,1)}</span></div></div>`; }).join('');
+  // Top
+  document.getElementById('al-top').innerHTML=sorted.slice(0,2).map((r,i)=>`<div class="alert-item"><div class="a-dot" style="background:${i===0?'#C8A430':'#7A8FA6'}"></div><div><strong>${r.emp.name}</strong><br><span style="font-size:11px;color:var(--text-secondary)">${pct(r.stats.ovPct)} — ${r.stats.tier.label}</span></div></div>`).join('');
+}
+
+function renderTopPerf(allS,data){
+  const sorted=[...allS].sort((a,b)=>b.stats.ovPct-a.stats.ovPct);
+  const cont=document.getElementById('top-row'); cont.innerHTML='';
+  sorted.slice(0,2).forEach((r,i)=>{
+    const d=document.createElement('div'); d.className='top-card';
+    d.innerHTML=`<div class="top-rank">${i+1}.</div><div class="av" style="width:48px;height:48px;font-size:15px">${r.emp.initials}</div><div class="top-info"><div class="tn">${r.emp.name}</div><div class="tr">${r.emp.role}</div><div class="tp">${pct(r.stats.ovPct)} <span style="font-size:12px;color:var(--text-secondary)">cíle</span></div><span class="tier-pill" style="background:${r.stats.tier.color};margin-top:4px;display:inline-block">${r.stats.tier.label}</span></div>`;
+    cont.appendChild(d);
+  });
+}
+
+function renderCrossSell(allS,data){
+  const BENCH=3.2;
+  const sorted=[...allS].sort((a,b)=>b.emp.crossSellRate-a.emp.crossSellRate);
+  const maxR=Math.max(...sorted.map(r=>r.emp.crossSellRate),BENCH);
+  document.getElementById('cs-bars').innerHTML=sorted.map(r=>{
+    const w=Math.round((r.emp.crossSellRate/maxR)*100);
+    const c=r.emp.crossSellRate>=BENCH?'var(--primary)':'var(--warning)';
+    return `<div class="csb-row"><span class="csb-nm">${r.emp.name.split(' ')[0]}</span><div class="csb-bg"><div class="csb-fill" style="width:${w}%;background:${c}"></div></div><span class="csb-val">${r.emp.crossSellRate.toFixed(1)}</span></div>`;
+  }).join('');
+  const avg=(allS.reduce((s,r)=>s+r.emp.crossSellRate,0)/allS.length).toFixed(1);
+  document.getElementById('cs-bench').innerHTML=`Průměr týmu: <strong>${avg}</strong> &nbsp;|&nbsp; Benchmark: <strong>${BENCH}</strong> &nbsp;|&nbsp; Top: <strong>${sorted[0].emp.name.split(' ')[0]}</strong> (${sorted[0].emp.crossSellRate.toFixed(1)})`;
+}
+
+function renderPool(allS,data){
+  const base=allS.reduce((s,r)=>s+r.stats.earned,0);
+  const mult=allS.reduce((s,r)=>s+r.stats.bonus-r.stats.csBonus-r.stats.earned,0);
+  const cs=allS.reduce((s,r)=>s+r.stats.csBonus,0);
+  const brPct=branchTotalPct(data);
+  const brBonus=brPct>=1?data.employees.length*data.teamBonuses.branchOnTarget:0;
+  const best=data.teamBonuses.bestSeller;
+  const total=base+mult+cs+brBonus+best;
+  document.getElementById('pool-rows').innerHTML=[
+    {l:'Základní provize',v:base},{l:'Tier násobič (bonus)',v:mult},{l:'Cross-sell bonusy',v:cs},
+    {l:'Bonus nejlepšího prodejce',v:best},{l:'Bonus za plnění pobočky',v:brBonus},{l:'Celkem (odhad)',v:total},
+  ].map(r=>`<div class="pool-row"><span class="pool-lbl">${r.l}</span><span>${czk(r.v)}</span></div>`).join('');
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+async function init(){
+  try{
+    const res=await fetch('/api/branch-reporter/demo');
+    S.data=await res.json();
+    const sel=document.getElementById('emp-select');
+    S.data.employees.forEach(e=>{ const o=document.createElement('option'); o.value=e.id; o.textContent=`${e.name} — ${e.role}`; sel.appendChild(o); });
+    document.getElementById('sel-sub').textContent=`${S.data.branch.name} \u00a0|\u00a0 ${S.data.branch.currentMonth}`;
+    document.getElementById('hdr-sub').textContent=`${S.data.branch.bank} · ${S.data.branch.currentMonth}`;
+    document.getElementById('loading').style.display='none';
+    document.getElementById('view-selector').style.display='block';
+  } catch(e){
+    document.getElementById('loading').innerHTML=`<div style="color:var(--danger)">Chyba při načítání: ${e.message}</div>`;
+  }
+}
+init();
+</script>
+</body>
+</html>
