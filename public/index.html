@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SLSP Data Apps</title>
+  <style>
+    :root {
+      --primary: #D7001D;
+      --primary-dark: #a80017;
+      --bg: #ffffff;
+      --text: #1a1a1a;
+      --text-secondary: #666666;
+      --border: #e5e5e5;
+      --card-bg: #f8f8f8;
+      --radius: 8px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+      --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header */
+    header {
+      background: var(--primary);
+      padding: 20px 0;
+    }
+    header .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 {
+      color: white;
+      font-size: 22px;
+      font-weight: 700;
+    }
+    header p {
+      color: rgba(255,255,255,0.85);
+      font-size: 13px;
+      margin-top: 3px;
+    }
+    .keboola-badge {
+      color: white;
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 64px 24px 48px;
+      background: white;
+    }
+    .hero h2 {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .hero p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 16px auto 0;
+      line-height: 1.6;
+    }
+
+    /* Apps section */
+    .apps-section {
+      background: #f4f4f4;
+      padding: 48px 24px;
+    }
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    /* Card */
+    .app-card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .app-card.active:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    }
+    .card-accent {
+      height: 4px;
+    }
+    .card-body {
+      padding: 28px;
+    }
+    .card-icon {
+      margin-bottom: 16px;
+    }
+    .card-body h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .card-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0;
+    }
+
+    /* Tags */
+    .tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 6px;
+      margin-top: 12px;
+    }
+    .tag-ai { background: #e8f0fe; color: #1a56db; }
+    .tag-finance { background: #e6f7f0; color: #0a7c42; }
+    .tag-soon { background: #f0f0f0; color: #666; }
+
+    /* Buttons */
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+    .btn-disabled {
+      background: #e0e0e0;
+      color: #999;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    /* Footer */
+    footer {
+      background: #1a1a1a;
+      padding: 24px;
+      text-align: center;
+    }
+
+    /* Responsive fallback for narrow screens */
+    @media (max-width: 900px) {
+      .apps-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <div>
+        <h1>SLSP Data Apps</h1>
+        <p>Ukázkové AI aplikace pro moderní bankovnictví</p>
+      </div>
+      <span class="keboola-badge">Powered by Keboola</span>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h2>Tři AI nástroje pro finanční poradce</h2>
+      <p>Demonstrační aplikace využívající umělou inteligenci pro analýzu klientských dat a automatizaci finančního poradenství.</p>
+    </div>
+  </section>
+
+  <section class="apps-section">
+    <div class="container">
+      <div class="apps-grid">
+
+        <!-- Card 1 — Solution Finder (ACTIVE) -->
+        <div class="app-card active">
+          <div class="card-accent" style="background: #1B3A6B; height: 4px;"></div>
+          <div class="card-body">
+            <div class="card-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="48" rx="12" fill="#e8f0fe"/>
+                <path d="M24 10L12 15v10c0 7.18 5.14 13.9 12 15.5C30.86 38.9 36 32.18 36 25V15L24 10z" fill="#1B3A6B"/>
+                <path d="M20 24l3 3 6-6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <h3>Solution Finder</h3>
+            <p class="card-desc">AI poradce analyzuje finanční situaci klienta a navrhuje konkrétní úpravy produktů pro dosažení solventnosti.</p>
+            <div class="card-tags">
+              <span class="tag tag-ai">AI</span>
+              <span class="tag tag-finance">Finanční zdraví</span>
+            </div>
+            <a href="/solution-finder/" class="btn btn-primary">Otevřít aplikaci</a>
+          </div>
+        </div>
+
+        <!-- Card 2 — Credit Scoring (COMING SOON) -->
+        <div class="app-card">
+          <div class="card-accent" style="background: #999; height: 4px;"></div>
+          <div class="card-body">
+            <div class="card-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="48" rx="12" fill="#f0f0f0"/>
+                <rect x="12" y="28" width="6" height="8" rx="2" fill="#aaa"/>
+                <rect x="21" y="20" width="6" height="16" rx="2" fill="#bbb"/>
+                <rect x="30" y="14" width="6" height="22" rx="2" fill="#ccc"/>
+              </svg>
+            </div>
+            <h3>Credit Scoring</h3>
+            <p class="card-desc">Automatické vyhodnocení bonity klienta na základě transakční historie a behaviorálních dat.</p>
+            <div class="card-tags">
+              <span class="tag tag-soon">Již brzy</span>
+            </div>
+            <button class="btn btn-disabled" disabled>Již brzy</button>
+          </div>
+        </div>
+
+        <!-- Card 3 — Investment Advisor (COMING SOON) -->
+        <div class="app-card">
+          <div class="card-accent" style="background: #999; height: 4px;"></div>
+          <div class="card-body">
+            <div class="card-icon">
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="48" height="48" rx="12" fill="#f0f0f0"/>
+                <polyline points="12,32 20,22 28,26 36,14" stroke="#bbb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <polyline points="30,14 36,14 36,20" stroke="#bbb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              </svg>
+            </div>
+            <h3>Investment Advisor</h3>
+            <p class="card-desc">Personalizovaná investiční strategie s ohledem na rizikový profil a finanční cíle klienta.</p>
+            <div class="card-tags">
+              <span class="tag tag-soon">Již brzy</span>
+            </div>
+            <button class="btn btn-disabled" disabled>Již brzy</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <p style="color: rgba(255,255,255,0.6); font-size: 13px;">© 2025 Slovenská sporiteľňa, a.s. · Ukázkové aplikace · Powered by Keboola</p>
+    </div>
+  </footer>
+
+</body>
+</html>
