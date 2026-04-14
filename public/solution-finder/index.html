@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solution Finder — SLSP</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #1B3A6B;
+      --primary-light: #2a5298;
+      --accent: #0066cc;
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --text: #1a2332;
+      --text-secondary: #5a6a7a;
+      --border: #d1dce8;
+      --success: #0a7c42;
+      --warning: #c45000;
+      --danger: #c41230;
+      --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      --radius: 8px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    /* Header */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: var(--primary);
+      z-index: 100;
+      height: 64px;
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .back-link {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .back-link:hover { color: white; }
+    .header-title h1 {
+      color: white;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .header-title p {
+      color: rgba(255,255,255,0.75);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    /* Progress bar */
+    #progress-bar {
+      position: sticky;
+      top: 64px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      z-index: 50;
+      padding: 16px 0;
+    }
+    .progress-inner {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+    }
+    .step-indicator {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .step-indicator span {
+      font-size: 11px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .step-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #e0e8f0;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .step-indicator.active .step-circle {
+      background: var(--accent);
+      color: white;
+    }
+    .step-indicator.completed .step-circle {
+      background: var(--success);
+      color: white;
+    }
+    .step-indicator.completed .step-circle::before {
+      content: '\2713';
+    }
+    .step-indicator.active span,
+    .step-indicator.completed span {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .step-connector {
+      flex: 1;
+      height: 2px;
+      background: #e0e8f0;
+      margin: 0 8px;
+      margin-bottom: 18px;
+    }
+    .step-connector.done { background: var(--success); }
+
+    /* Main */
+    main {
+      padding-top: 140px;
+      padding-bottom: 80px;
+      min-height: 100vh;
+      background: var(--bg);
+    }
+    .step-panel {
+      display: none;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    .step-panel.active { display: block; }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 10px;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th {
+      background: #f0f4f8;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 10px 12px;
+      text-align: left;
+    }
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    td input, td select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 13px;
+      background: white;
+      font-family: var(--font);
+    }
+    td input:focus, td select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .btn-remove {
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .btn-remove:hover {
+      background: #fee;
+      color: var(--danger);
+    }
+
+    /* Add row button */
+    .btn-add {
+      background: none;
+      border: 1px dashed var(--border);
+      color: var(--accent);
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 13px;
+      margin-top: 10px;
+      font-family: var(--font);
+    }
+    .btn-add:hover {
+      background: #f0f6ff;
+      border-color: var(--accent);
+    }
+
+    /* Navigation buttons */
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 32px;
+    }
+    .btn-nav {
+      padding: 12px 28px;
+      border-radius: var(--radius);
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s;
+      font-family: var(--font);
+    }
+    .btn-prev {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-prev:hover { background: #f5f5f5; }
+    .btn-next {
+      background: var(--accent);
+      color: white;
+    }
+    .btn-next:hover { background: #0055aa; }
+    .btn-prev:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* DTI indicator */
+    .dti-indicator {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      margin-top: 16px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .dti-low { background: #e6f7f0; color: #0a7c42; border-left: 3px solid #0a7c42; }
+    .dti-medium { background: #fff8e6; color: #7c5c00; border-left: 3px solid #f0c040; }
+    .dti-high { background: #fff3e6; color: #c45000; border-left: 3px solid #e88a00; }
+    .dti-critical { background: #fef0f0; color: #c41230; border-left: 3px solid #c41230; }
+
+    /* Demo button */
+    #demo-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      background: #D7001D;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(215,0,29,0.4);
+      transition: transform 0.2s;
+      font-family: var(--font);
+    }
+    #demo-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(215,0,29,0.5);
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e0e8f0;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Loading overlay */
+    #loading { display: none; text-align: center; padding: 48px; }
+    #loading.active { display: block; }
+    #loading p { color: var(--text-secondary); margin-top: 16px; font-size: 15px; }
+
+    /* Results */
+    #results { display: none; }
+    #results.active { display: block; }
+    .results-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .severity-box { padding: 24px; border-radius: var(--radius); }
+    .severity-critical { background: #fef0f0; border: 1px solid #f5c5c5; }
+    .severity-high { background: #fff3e6; border: 1px solid #f5d5b0; }
+    .severity-medium { background: #fff8e6; border: 1px solid #f5e5a0; }
+    .severity-low { background: #e6f7f0; border: 1px solid #a0d5b5; }
+    .severity-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .severity-title { font-size: 22px; font-weight: 700; }
+    .health-score-box { text-align: center; padding: 16px; }
+    .key-events { margin-top: 12px; }
+    .key-event {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .key-event::before {
+      content: '\2022';
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* Recommendation cards */
+    .rec-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .rec-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+    }
+    .rec-card.priority-urgent { border-left: 4px solid var(--danger); }
+    .rec-card.priority-high { border-left: 4px solid var(--warning); }
+    .rec-card.priority-medium { border-left: 4px solid var(--accent); }
+    .priority-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .priority-badge.priority-urgent { background: #fee; color: var(--danger); }
+    .priority-badge.priority-high { background: #fff0e0; color: var(--warning); }
+    .priority-badge.priority-medium { background: #e0f0ff; color: var(--accent); }
+    .rec-product { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 4px; padding-right: 80px; }
+    .rec-current { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+    .rec-change { font-size: 13px; color: var(--primary-light); font-weight: 600; margin-bottom: 8px; }
+    .rec-saving {
+      display: inline-block;
+      background: #e6f7f0;
+      color: var(--success);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .rec-note { font-size: 11px; color: var(--text-secondary); font-style: italic; margin-bottom: 12px; }
+    .btn-rec {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      font-family: var(--font);
+    }
+    .btn-rec:hover { background: var(--primary-light); }
+
+    /* Total relief */
+    .total-relief {
+      background: #e6f7f0;
+      border: 2px solid #a0d5b5;
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin: 24px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .total-relief-label { font-size: 14px; color: var(--text-secondary); }
+    .total-relief-amount { font-size: 28px; font-weight: 700; color: var(--success); }
+
+    /* Narrative */
+    .narrative {
+      background: white;
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.7;
+      white-space: pre-wrap;
+      border: 1px solid var(--border);
+    }
+
+    /* Print button */
+    .print-btn {
+      background: white;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 16px;
+      font-family: var(--font);
+    }
+    .print-btn:hover { background: #f5f5f5; }
+
+    /* Demo banner */
+    .demo-banner {
+      background: #fff8e6;
+      border: 1px solid #f0d080;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: none;
+      font-size: 14px;
+      color: #7c5c00;
+    }
+    .demo-banner.show {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Info box */
+    .info-box {
+      background: #e8f0fe;
+      border-left: 3px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 13px;
+      color: #1a56db;
+      margin-bottom: 16px;
+    }
+
+    /* Summary bar */
+    .summary-bar {
+      background: #f0f6ff;
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+    }
+    .summary-bar strong { color: var(--text); }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .results-header { grid-template-columns: 1fr; }
+      .progress-inner { padding: 0 12px; }
+      .step-indicator span { font-size: 9px; }
+      .step-panel { padding: 24px 12px; }
+    }
+
+    @media print {
+      header, #progress-bar, #demo-btn, .nav-buttons, .btn-rec { display: none !important; }
+      main { padding-top: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fixed header -->
+  <header>
+    <div class="header-inner">
+      <a href="/" class="back-link">&larr; SLSP Data Apps</a>
+      <div class="header-title">
+        <h1>Solution Finder</h1>
+        <p>AI poradce pro finanční zdraví klienta</p>
+      </div>
+      <div></div>
+    </div>
+  </header>
+
+  <!-- Progress bar -->
+  <div id="progress-bar">
+    <div class="progress-inner">
+      <div class="step-indicator active" data-step="1">
+        <div class="step-circle">1</div>
+        <span>Životní příběh</span>
+      </div>
+      <div class="step-connector" id="connector-1-2"></div>
+      <div class="step-indicator" data-step="2">
+        <div class="step-circle">2</div>
+        <span>Příjmy &amp; Majetek</span>
+      </div>
+      <div class="step-connector" id="connector-2-3"></div>
+      <div class="step-indicator" data-step="3">
+        <div class="step-circle">3</div>
+        <span>Závazky &amp; Výdaje</span>
+      </div>
+      <div class="step-connector" id="connector-3-4"></div>
+      <div class="step-indicator" data-step="4">
+        <div class="step-circle">4</div>
+        <span>AI Analýza</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <main>
+
+    <!-- Step 1: Life story -->
+    <div id="step-1" class="step-panel active">
+      <div class="demo-banner" id="demo-banner">
+        <span>Demo data načtena &mdash; klikněte <strong>Analyzovat situaci</strong> v posledním kroku.</span>
+        <button onclick="document.getElementById('demo-banner').classList.remove('show')" style="background:none;border:none;cursor:pointer;font-size:16px;color:#7c5c00;">&#x2715;</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Životní situace klienta</div>
+        <div class="info-box">Popište situaci klienta &mdash; co se stalo, jak se dostal do finanční tísně. Text bude vyhodnocen AI, která z něj extrahuje klíčové události a zhodnotí závažnost situace.</div>
+        <textarea
+          id="life-story-text"
+          rows="8"
+          placeholder="Popište klientovu situaci vlastními slovy..."
+          style="width:100%;padding:12px;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font);font-size:14px;line-height:1.6;resize:vertical;"
+          oninput="state.lifeStory = this.value"
+        ></textarea>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-nav btn-prev" disabled>&larr; Zpět</button>
+        <button class="btn-nav btn-next" onclick="goToStep(2)">Příjmy &amp; Majetek &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Incomes & Assets -->
+    <div id="step-2" class="step-panel">
+      <div class="card">
+        <div class="card-title">Příjmy</div>
+        <table id="incomes-table">
+          <thead>
+            <tr>
+              <th>Typ příjmu</th>
+              <th>Popis</th>
+              <th>Čistý příjem/měs. (Kč)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button class="btn-add" onclick="addIncomeRow()">+ Přidat příjem</button>
+        <div class="summary-bar" id="income-summary">Celkový měsíční příjem: <strong>0 Kč</strong></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Majetek k prodeji</div>
+        <table id="assets-table">
+          <thead>
+            <tr>
+              <th>Popis majetku</th>
+              <th>Odhadovaná hodnota (Kč)</th>
+              <th>Ochoten prodat?</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button class="btn-add" onclick="addAssetRow()">+ Přidat majetek</button>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-nav btn-prev" onclick="goToStep(1)">&larr; Zpět</button>
+        <button class="btn-nav btn-next" onclick="goToStep(3)">Závazky &amp; Výdaje &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Debts & Expenses -->
+    <div id="step-3" class="step-panel">
+      <div class="card">
+        <div class="card-title">Závazky (úvěry a půjčky)</div>
+        <table id="debts-table">
+          <thead>
+            <tr>
+              <th>Typ</th>
+              <th>Banka / věřitel</th>
+              <th>Dlužná částka (Kč)</th>
+              <th>Úrok (% p.a.)</th>
+              <th>Splátka/měs. (Kč)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button class="btn-add" onclick="addDebtRow()">+ Přidat závazek</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Pravidelné výdaje</div>
+        <table id="expenses-table">
+          <thead>
+            <tr>
+              <th>Kategorie</th>
+              <th>Částka/měs. (Kč)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <button class="btn-add" onclick="addExpenseRow()">+ Přidat výdaj</button>
+      </div>
+
+      <div id="dti-display" class="dti-indicator dti-low">
+        DTI (poměr splátek k příjmu): <span id="dti-value">0.0 %</span>
+      </div>
+
+      <div class="nav-buttons">
+        <button class="btn-nav btn-prev" onclick="goToStep(2)">&larr; Zpět</button>
+        <button class="btn-nav btn-next" onclick="goToStep(4)">AI Analýza &rarr;</button>
+      </div>
+    </div>
+
+    <!-- Step 4: AI Analysis -->
+    <div id="step-4" class="step-panel">
+      <div style="text-align:center; margin-bottom: 24px;">
+        <button
+          onclick="runAnalysis()"
+          style="background: var(--accent); color: white; border: none; padding: 16px 40px; border-radius: var(--radius); font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,102,204,0.3); font-family: var(--font);"
+        >
+          Analyzovat situaci
+        </button>
+      </div>
+
+      <div id="loading">
+        <div class="spinner"></div>
+        <p>AI analyzuje Vaši situaci<span id="loading-dots">...</span></p>
+        <p style="font-size:12px; color: #999; margin-top: 8px;">Zpracování trvá 2&ndash;3 sekundy</p>
+      </div>
+
+      <div id="results">
+        <div class="results-header">
+          <div id="severity-box" class="severity-box">
+            <div class="severity-label">Závažnost situace</div>
+            <div class="severity-title" id="severity-title">&mdash;</div>
+            <div class="key-events" id="key-events-list"></div>
+          </div>
+          <div class="health-score-box card">
+            <div style="font-size:13px;font-weight:700;color:var(--text-secondary);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.05em;">Finanční skóre</div>
+            <canvas id="health-chart" width="160" height="160" style="max-width:160px;"></canvas>
+            <div id="health-score-number" style="font-size:28px;font-weight:700;margin-top:8px;">&mdash;</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Srovnání DTI (před / po restrukturalizaci)</div>
+          <canvas id="dti-chart" height="80"></canvas>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Doporučená opatření</div>
+          <div class="rec-grid" id="rec-cards"></div>
+        </div>
+
+        <div class="total-relief">
+          <div>
+            <div class="total-relief-label">Celková měsíční úspora po realizaci všech opatření</div>
+          </div>
+          <div class="total-relief-amount" id="total-relief">&mdash; Kč/měs.</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Hodnocení AI poradce</div>
+          <div class="narrative" id="narrative-text"></div>
+        </div>
+
+        <div style="text-align:center; margin-top:16px;">
+          <button onclick="window.print()" class="print-btn">Exportovat / Tisk</button>
+        </div>
+      </div>
+
+      <div class="nav-buttons" style="margin-top: 32px;">
+        <button class="btn-nav btn-prev" onclick="goToStep(3)">&larr; Zpět</button>
+        <div></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Floating demo button -->
+  <button id="demo-btn" onclick="loadDemo()">Demo: Radek Špaček</button>
+
+  <script>
+    // -----------------------------------------------------------------------
+    // State
+    // -----------------------------------------------------------------------
+    const state = {
+      currentStep: 1,
+      lifeStory: '',
+      incomes: [],
+      assets: [],
+      debts: [],
+      expenses: [],
+      analysisResult: null,
+      charts: {}
+    };
+
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
+    function formatCZK(n) {
+      return new Intl.NumberFormat('cs-CZ', {
+        style: 'currency',
+        currency: 'CZK',
+        maximumFractionDigits: 0
+      }).format(n);
+    }
+
+    // -----------------------------------------------------------------------
+    // Navigation
+    // -----------------------------------------------------------------------
+    function goToStep(n) {
+      // Hide all panels
+      document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('step-' + n).classList.add('active');
+
+      // Update step indicators
+      document.querySelectorAll('.step-indicator').forEach(ind => {
+        const s = parseInt(ind.dataset.step);
+        ind.classList.remove('active', 'completed');
+        if (s < n) {
+          ind.classList.add('completed');
+          // Hide original number, show checkmark via CSS ::before
+          ind.querySelector('.step-circle').textContent = '';
+        } else if (s === n) {
+          ind.classList.add('active');
+          ind.querySelector('.step-circle').textContent = s;
+        } else {
+          ind.querySelector('.step-circle').textContent = s;
+        }
+      });
+
+      // Update connectors
+      for (let i = 1; i <= 3; i++) {
+        const connector = document.getElementById('connector-' + i + '-' + (i + 1));
+        if (connector) {
+          if (i < n) {
+            connector.classList.add('done');
+          } else {
+            connector.classList.remove('done');
+          }
+        }
+      }
+
+      state.currentStep = n;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // -----------------------------------------------------------------------
+    // Income summary
+    // -----------------------------------------------------------------------
+    function updateIncomeSummary() {
+      const rows = document.querySelectorAll('#incomes-table tbody tr');
+      let total = 0;
+      rows.forEach(tr => {
+        const inp = tr.querySelector('[name=monthly_net]');
+        total += parseFloat(inp ? inp.value : 0) || 0;
+      });
+      document.getElementById('income-summary').innerHTML =
+        'Celkový měsíční příjem: <strong>' + formatCZK(total) + '</strong>';
+    }
+
+    // -----------------------------------------------------------------------
+    // DTI calculation
+    // -----------------------------------------------------------------------
+    function updateDTI() {
+      const incomeRows = document.querySelectorAll('#incomes-table tbody tr');
+      let totalIncome = 0;
+      incomeRows.forEach(tr => {
+        const inp = tr.querySelector('[name=monthly_net]');
+        totalIncome += parseFloat(inp ? inp.value : 0) || 0;
+      });
+
+      const debtRows = document.querySelectorAll('#debts-table tbody tr');
+      let totalDebtPayments = 0;
+      debtRows.forEach(tr => {
+        const inp = tr.querySelector('[name=monthly_payment]');
+        totalDebtPayments += parseFloat(inp ? inp.value : 0) || 0;
+      });
+
+      const dti = totalIncome > 0 ? totalDebtPayments / totalIncome : 0;
+      const dtiPct = (dti * 100).toFixed(1);
+
+      document.getElementById('dti-value').textContent = dtiPct + ' %';
+
+      const display = document.getElementById('dti-display');
+      display.classList.remove('dti-low', 'dti-medium', 'dti-high', 'dti-critical');
+      if (dti < 0.30) {
+        display.classList.add('dti-low');
+      } else if (dti < 0.45) {
+        display.classList.add('dti-medium');
+      } else if (dti < 0.60) {
+        display.classList.add('dti-high');
+      } else {
+        display.classList.add('dti-critical');
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // Add row: Income
+    // -----------------------------------------------------------------------
+    function addIncomeRow(data) {
+      data = data || {};
+      const tbody = document.querySelector('#incomes-table tbody');
+      const tr = document.createElement('tr');
+
+      const typeOptions = ['zaměstnání', 'podnikání', 'pronájem', 'ostatní'];
+      const typeSelect = typeOptions.map(o =>
+        '<option value="' + o + '"' + (data.type === o ? ' selected' : '') + '>' + o.charAt(0).toUpperCase() + o.slice(1) + '</option>'
+      ).join('');
+
+      tr.innerHTML =
+        '<td><select name="type">' + typeSelect + '</select></td>' +
+        '<td><input type="text" name="description" placeholder="Popis" value="' + escAttr(data.description) + '"></td>' +
+        '<td><input type="number" name="monthly_net" placeholder="0" min="0" value="' + (data.monthly_net || '') + '"></td>' +
+        '<td><button class="btn-remove" title="Odebrat">&#x2715;</button></td>';
+
+      tr.querySelector('.btn-remove').addEventListener('click', function() {
+        tr.remove();
+        updateIncomeSummary();
+        updateDTI();
+      });
+
+      const inputs = tr.querySelectorAll('input, select');
+      inputs.forEach(inp => {
+        inp.addEventListener('input', function() {
+          updateIncomeSummary();
+          updateDTI();
+        });
+      });
+
+      tbody.appendChild(tr);
+      updateIncomeSummary();
+      updateDTI();
+    }
+
+    // -----------------------------------------------------------------------
+    // Add row: Asset
+    // -----------------------------------------------------------------------
+    function addAssetRow(data) {
+      data = data || {};
+      const tbody = document.querySelector('#assets-table tbody');
+      const tr = document.createElement('tr');
+      const isChecked = data.willing_to_sell !== false;
+
+      tr.innerHTML =
+        '<td><input type="text" name="description" placeholder="Popis majetku" value="' + escAttr(data.description) + '"></td>' +
+        '<td><input type="number" name="estimated_value" placeholder="0" min="0" value="' + (data.estimated_value || '') + '"></td>' +
+        '<td style="text-align:center;"><input type="checkbox" name="willing_to_sell"' + (isChecked ? ' checked' : '') + ' style="width:auto;cursor:pointer;"></td>' +
+        '<td><button class="btn-remove" title="Odebrat">&#x2715;</button></td>';
+
+      tr.querySelector('.btn-remove').addEventListener('click', function() {
+        tr.remove();
+      });
+
+      tbody.appendChild(tr);
+    }
+
+    // -----------------------------------------------------------------------
+    // Add row: Debt
+    // -----------------------------------------------------------------------
+    function addDebtRow(data) {
+      data = data || {};
+      const tbody = document.querySelector('#debts-table tbody');
+      const tr = document.createElement('tr');
+
+      const debtTypes = ['hypotéka', 'spotřební úvěr', 'kreditní karta', 'rychlá půjčka', 'leasing', 'jiné'];
+      const typeSelect = debtTypes.map(o =>
+        '<option value="' + o + '"' + (data.type === o ? ' selected' : '') + '>' + o.charAt(0).toUpperCase() + o.slice(1) + '</option>'
+      ).join('');
+
+      tr.innerHTML =
+        '<td><select name="type">' + typeSelect + '</select></td>' +
+        '<td><input type="text" name="bank" placeholder="Věřitel" value="' + escAttr(data.bank) + '"></td>' +
+        '<td><input type="number" name="balance" placeholder="0" min="0" value="' + (data.balance || '') + '"></td>' +
+        '<td><input type="number" name="rate" placeholder="0.0" min="0" step="0.1" value="' + (data.rate || '') + '"></td>' +
+        '<td><input type="number" name="monthly_payment" placeholder="0" min="0" value="' + (data.monthly_payment || '') + '"></td>' +
+        '<td><button class="btn-remove" title="Odebrat">&#x2715;</button></td>';
+
+      tr.querySelector('.btn-remove').addEventListener('click', function() {
+        tr.remove();
+        updateDTI();
+      });
+
+      const inputs = tr.querySelectorAll('input, select');
+      inputs.forEach(inp => {
+        inp.addEventListener('input', function() {
+          updateDTI();
+        });
+      });
+
+      tbody.appendChild(tr);
+      updateDTI();
+    }
+
+    // -----------------------------------------------------------------------
+    // Add row: Expense
+    // -----------------------------------------------------------------------
+    function addExpenseRow(data) {
+      data = data || {};
+      const tbody = document.querySelector('#expenses-table tbody');
+      const tr = document.createElement('tr');
+
+      const categories = ['bydlení', 'jídlo', 'doprava', 'energie', 'jiné'];
+      const catSelect = categories.map(o =>
+        '<option value="' + o + '"' + (data.category === o ? ' selected' : '') + '>' + o.charAt(0).toUpperCase() + o.slice(1) + '</option>'
+      ).join('');
+
+      tr.innerHTML =
+        '<td><select name="category">' + catSelect + '</select></td>' +
+        '<td><input type="number" name="monthly_amount" placeholder="0" min="0" value="' + (data.monthly_amount || '') + '"></td>' +
+        '<td><button class="btn-remove" title="Odebrat">&#x2715;</button></td>';
+
+      tr.querySelector('.btn-remove').addEventListener('click', function() {
+        tr.remove();
+      });
+
+      tbody.appendChild(tr);
+    }
+
+    // -----------------------------------------------------------------------
+    // Escape attribute helper
+    // -----------------------------------------------------------------------
+    function escAttr(val) {
+      if (!val) return '';
+      return String(val).replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // -----------------------------------------------------------------------
+    // Collect helpers
+    // -----------------------------------------------------------------------
+    function collectIncomes() {
+      return Array.from(document.querySelectorAll('#incomes-table tbody tr')).map(tr => ({
+        type: tr.querySelector('[name=type]').value,
+        description: tr.querySelector('[name=description]').value,
+        monthly_net: parseFloat(tr.querySelector('[name=monthly_net]').value) || 0
+      }));
+    }
+
+    function collectAssets() {
+      return Array.from(document.querySelectorAll('#assets-table tbody tr')).map(tr => ({
+        description: tr.querySelector('[name=description]').value,
+        estimated_value: parseFloat(tr.querySelector('[name=estimated_value]').value) || 0,
+        willing_to_sell: tr.querySelector('[name=willing_to_sell]').checked
+      }));
+    }
+
+    function collectDebts() {
+      return Array.from(document.querySelectorAll('#debts-table tbody tr')).map(tr => ({
+        type: tr.querySelector('[name=type]').value,
+        bank: tr.querySelector('[name=bank]').value,
+        balance: parseFloat(tr.querySelector('[name=balance]').value) || 0,
+        rate: parseFloat(tr.querySelector('[name=rate]').value) || 0,
+        monthly_payment: parseFloat(tr.querySelector('[name=monthly_payment]').value) || 0
+      }));
+    }
+
+    function collectExpenses() {
+      return Array.from(document.querySelectorAll('#expenses-table tbody tr')).map(tr => ({
+        category: tr.querySelector('[name=category]').value,
+        monthly_amount: parseFloat(tr.querySelector('[name=monthly_amount]').value) || 0
+      }));
+    }
+
+    // -----------------------------------------------------------------------
+    // Loading dots animation
+    // -----------------------------------------------------------------------
+    let dotsInterval;
+    function startDotsAnimation() {
+      let n = 3;
+      dotsInterval = setInterval(function() {
+        n = (n + 1) % 4;
+        const el = document.getElementById('loading-dots');
+        if (el) el.textContent = '.'.repeat(n) || '';
+      }, 400);
+    }
+    function stopDotsAnimation() {
+      clearInterval(dotsInterval);
+      const el = document.getElementById('loading-dots');
+      if (el) el.textContent = '...';
+    }
+
+    // -----------------------------------------------------------------------
+    // Run analysis
+    // -----------------------------------------------------------------------
+    async function runAnalysis() {
+      state.incomes = collectIncomes();
+      state.assets = collectAssets();
+      state.debts = collectDebts();
+      state.expenses = collectExpenses();
+      state.lifeStory = document.getElementById('life-story-text').value;
+
+      document.getElementById('loading').classList.add('active');
+      document.getElementById('results').classList.remove('active');
+
+      startDotsAnimation();
+
+      try {
+        const res = await fetch('/api/solution-finder/ai-analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            life_story: state.lifeStory,
+            incomes: state.incomes,
+            assets: state.assets,
+            debts: state.debts,
+            expenses: state.expenses
+          })
+        });
+        if (!res.ok) throw new Error('Analýza selhala: ' + res.status);
+        state.analysisResult = await res.json();
+        renderResults(state.analysisResult);
+      } catch (err) {
+        alert('Chyba: ' + err.message);
+      } finally {
+        stopDotsAnimation();
+        document.getElementById('loading').classList.remove('active');
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // Render results
+    // -----------------------------------------------------------------------
+    function renderResults(data) {
+      document.getElementById('results').classList.add('active');
+
+      // Severity box
+      const severityBox = document.getElementById('severity-box');
+      severityBox.className = 'severity-box severity-' + data.severity;
+      document.getElementById('severity-title').textContent = data.severity_label;
+
+      // Key events
+      const keyEventsList = document.getElementById('key-events-list');
+      keyEventsList.innerHTML = (data.key_events || []).map(function(e) {
+        return '<div class="key-event">' + e + '</div>';
+      }).join('');
+
+      // Health score doughnut chart
+      const healthCtx = document.getElementById('health-chart').getContext('2d');
+      if (state.charts.health) state.charts.health.destroy();
+      const scoreColor = data.health_score > 60 ? '#0a7c42' : data.health_score > 30 ? '#c45000' : '#c41230';
+      state.charts.health = new Chart(healthCtx, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [data.health_score, 100 - data.health_score],
+            backgroundColor: [scoreColor, '#e0e8f0'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          cutout: '75%',
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: false }
+          },
+          animation: { duration: 800 }
+        }
+      });
+      const scoreEl = document.getElementById('health-score-number');
+      scoreEl.textContent = data.health_score + ' / 100';
+      scoreEl.style.color = scoreColor;
+
+      // DTI comparison bar chart
+      const dtiCtx = document.getElementById('dti-chart').getContext('2d');
+      if (state.charts.dti) state.charts.dti.destroy();
+      state.charts.dti = new Chart(dtiCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Před restrukturalizací', 'Po restrukturalizaci'],
+          datasets: [{
+            data: [
+              Math.round(data.current_dti * 1000) / 10,
+              Math.round(data.projected_dti * 1000) / 10
+            ],
+            backgroundColor: ['#c41230', '#0a7c42'],
+            borderRadius: 4,
+            barThickness: 40
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) { return ' ' + ctx.raw + ' %'; }
+              }
+            }
+          },
+          scales: {
+            x: {
+              min: 0,
+              max: 100,
+              ticks: { callback: function(v) { return v + ' %'; } },
+              grid: { color: '#f0f0f0' }
+            },
+            y: { grid: { display: false } }
+          },
+          animation: { duration: 800 }
+        }
+      });
+
+      // Recommendation cards
+      const recGrid = document.getElementById('rec-cards');
+      recGrid.innerHTML = (data.recommendations || []).map(function(r) {
+        const priorityLabel = r.priority === 'urgent' ? 'Urgentní' :
+                              r.priority === 'high' ? 'Vysoká' : 'Střední';
+        return '<div class="rec-card priority-' + r.priority + '">' +
+          '<span class="priority-badge priority-' + r.priority + '">' + priorityLabel + '</span>' +
+          '<div class="rec-product">' + r.product + '</div>' +
+          '<div class="rec-current">' + r.current_terms + '</div>' +
+          '<div class="rec-change">&rarr; ' + r.proposed_change + '</div>' +
+          '<div class="rec-saving">Úspora: +' + r.monthly_saving.toLocaleString('cs-CZ') + ' Kč/měs.</div>' +
+          (r.one_time_note ? '<div class="rec-note">' + r.one_time_note + '</div>' : '') +
+          '<button class="btn-rec">' + r.action_label + '</button>' +
+          '</div>';
+      }).join('');
+
+      // Total relief
+      document.getElementById('total-relief').textContent = formatCZK(data.total_monthly_relief) + '/měs.';
+
+      // Narrative
+      document.getElementById('narrative-text').textContent = data.narrative;
+    }
+
+    // -----------------------------------------------------------------------
+    // Load demo data
+    // -----------------------------------------------------------------------
+    async function loadDemo() {
+      try {
+        const res = await fetch('/api/solution-finder/demo');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+
+        // Fill life story
+        document.getElementById('life-story-text').value = data.life_story;
+        state.lifeStory = data.life_story;
+
+        // Rebuild incomes table
+        document.querySelector('#incomes-table tbody').innerHTML = '';
+        (data.incomes || []).forEach(function(r) { addIncomeRow(r); });
+
+        // Rebuild assets table
+        document.querySelector('#assets-table tbody').innerHTML = '';
+        (data.assets || []).forEach(function(r) { addAssetRow(r); });
+
+        // Rebuild debts table
+        document.querySelector('#debts-table tbody').innerHTML = '';
+        (data.debts || []).forEach(function(r) { addDebtRow(r); });
+
+        // Rebuild expenses table
+        document.querySelector('#expenses-table tbody').innerHTML = '';
+        (data.expenses || []).forEach(function(r) { addExpenseRow(r); });
+
+        // Update calculated fields
+        updateIncomeSummary();
+        updateDTI();
+
+        // Navigate to step 4 and show banner
+        goToStep(4);
+        document.getElementById('demo-banner').classList.add('show');
+
+      } catch (err) {
+        alert('Nepodařilo se načíst demo data: ' + err.message);
+      }
+    }
+  </script>
+
+</body>
+</html>
